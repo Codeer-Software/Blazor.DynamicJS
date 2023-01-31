@@ -1,0 +1,106 @@
+﻿@page "/counter"
+@inject IJSRuntime JS
+@using System.Diagnostics
+@using Blazor.DynamicJS
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Time: @currentCount</p>
+
+
+<button class="btn btn-primary" @onclick="Test">Click me</button>
+
+<label id="_test">test</label>
+
+<div id="parent-div">
+  <p id="child-p1">child 1</p>
+  <p id="child-p3">child 3</p>
+</div>
+
+@code {
+    private async Task Test()
+    {
+        var w = new Stopwatch();
+        w.Start();
+
+        await TestCore();
+
+        w.Stop();
+        currentCount = (int)w.ElapsedMilliseconds;
+    }
+
+
+    private async Task TestCore()
+    {
+        await Task.CompletedTask;
+
+        using var conn = new DynamicJSRuntime();
+
+        var func = JS.ToJSFuction(conn, ()=>
+        {
+
+            int dmy = 0;
+
+        });
+        func();
+
+        var func2 = JS.ToJSFuction(conn, (int a, int b, int c) =>
+        {
+
+            return a + b + c;
+
+        });
+
+        int val = func2(1, 2, 3);
+    }
+
+    private async Task TestCore1()
+    {
+        await Task.CompletedTask;
+
+        using var conn = new DynamicJSRuntime();
+
+        var window = JS.Window(conn);
+
+        int ret1 = window.func1(1, 2, 3);
+        int[] ret2 = window.func2(1, 2, 3);
+        int sum = window.sum(1, 2, 3, 4);
+
+        window.data = 100;
+        window.dataX = new { a = 100, b = 200 };
+
+        var x = window.dataX;
+        x.a = x.b;
+        int a = x.a;
+
+        //new
+        var rect = JS.New(conn).TestTargets.Rectangle(1, 2);
+        int height = rect.height;
+
+        string text = window.document.getElementById("_test").innerText;
+        window.document.getElementById("_test").innerText = "abc";
+
+
+        var newElement = window.document.createElement("p"); 
+        var newContent = window.document.createTextNode("child 2"); 
+        newElement.appendChild(newContent);
+        newElement.setAttribute("id","child-p2"); 
+ 
+        var parentDiv = window.document.getElementById("parent-div");
+ 
+        var childP3 = window.document.getElementById("child-p3");
+ 
+        parentDiv.insertBefore(newElement, childP3);
+    }
+
+
+    
+    private int currentCount = 0;
+    private async Task IncrementCountX()
+    {
+        await Task.CompletedTask;
+        currentCount++;
+    }
+}
