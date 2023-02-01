@@ -2,7 +2,7 @@
 
 namespace Blazor.DynamicJS
 {
-    public static class DynamicJSRuntimeExtentions
+    public static class DynamicJSRuntimeFunctionExtentions
     {
         //to extention methods
 

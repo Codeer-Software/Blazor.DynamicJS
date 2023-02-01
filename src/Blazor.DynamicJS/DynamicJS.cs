@@ -3,6 +3,8 @@ using Microsoft.JSInterop;
 
 namespace Blazor.DynamicJS
 {
+    //implements at DynamicJSRuntime
+
     internal class DynamicJS : DynamicObject, IJSSyntax
     {
         IJSRuntime _jsRuntime;
