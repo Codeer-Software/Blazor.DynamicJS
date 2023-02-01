@@ -25,7 +25,7 @@
         var w = new Stopwatch();
         w.Start();
 
-        await TestCore();
+        await TestCore1();
 
         w.Stop();
         currentCount = (int)w.ElapsedMilliseconds;
@@ -36,9 +36,9 @@
     {
         await Task.CompletedTask;
 
-        using var conn = new DynamicJSRuntime();
+        using var js = JS.CreateDymaicRuntime();
 
-        var func = JS.ToJSFuction(conn, ()=>
+        var func = js.ToJSFuction(() =>
         {
 
             int dmy = 0;
@@ -46,7 +46,7 @@
         });
         func();
 
-        var func2 = JS.ToJSFuction(conn, (int a, int b, int c) =>
+        var func2 = js.ToJSFuction((int a, int b, int c) =>
         {
 
             return a + b + c;
@@ -60,9 +60,9 @@
     {
         await Task.CompletedTask;
 
-        using var conn = new DynamicJSRuntime();
+        using var js = JS.CreateDymaicRuntime();
 
-        var window = JS.Window(conn);
+        var window = js.Window();
 
         int ret1 = window.func1(1, 2, 3);
         int[] ret2 = window.func2(1, 2, 3);
@@ -76,7 +76,7 @@
         int a = x.a;
 
         //new
-        var rect = JS.New(conn).TestTargets.Rectangle(1, 2);
+        var rect = js.New().TestTargets.Rectangle(1, 2);
         int height = rect.height;
 
         string text = window.document.getElementById("_test").innerText;

@@ -7,9 +7,14 @@ namespace Blazor.DynamicJS
 
     public class DynamicJSRuntime : IDisposable, IAsyncDisposable
     {
-        Guid _guid;
-        public DynamicJSRuntime() => _guid = Guid.NewGuid();
+        readonly Guid _guid;
+        readonly IJSRuntime _jsRuntime;
 
+        internal DynamicJSRuntime(IJSRuntime jsRuntime) 
+        {
+            _jsRuntime = jsRuntime;
+            _guid = Guid.NewGuid();
+        }
         internal List<IDisposable> Disposables { get; } = new List<IDisposable>();
 
         public void Dispose()
@@ -20,54 +25,62 @@ namespace Blazor.DynamicJS
         {
             await Task.CompletedTask;
         }
+
+
+
+
+
+        public dynamic Window() => new DynamicJSReference(_jsRuntime, 0, new List<string>());
+
+        public dynamic New() => new DynamicJSNew(_jsRuntime);
+
+
+        public dynamic ToJSFuction(Action action)
+            => ToJSFunctionCore(DotNetObjectReference.Create(new JSFunctionVoid(action)));
+
+        public dynamic ToJSFuction<T0>(Action<T0> action)
+            => ToJSFunctionCore(DotNetObjectReference.Create(new JSFunctionVoid<T0>(action)));
+
+        public dynamic ToJSFuction<T0, T1>(Action<T0, T1> action)
+            => ToJSFunctionCore(DotNetObjectReference.Create(new JSFunctionVoid<T0, T1>(action)));
+
+        public dynamic ToJSFuction<T0, T1, T2>(Action<T0, T1, T2> action)
+            => ToJSFunctionCore(DotNetObjectReference.Create(new JSFunctionVoid<T0, T1, T2>(action)));
+
+
+
+        public dynamic ToJSFuction<R>(Func<R> func)
+            => ToJSFunctionCore(DotNetObjectReference.Create(new JSFunction<R>(func)));
+
+        public dynamic ToJSFuction<T0, R>(Func<T0, R> func)
+            => ToJSFunctionCore(DotNetObjectReference.Create(new JSFunction<T0, R>(func)));
+
+        public dynamic ToJSFuction<T0, T1, R>(Func<T0, T1, R> func)
+            => ToJSFunctionCore(DotNetObjectReference.Create(new JSFunction<T0, T1, R>(func)));
+
+        public dynamic ToJSFuction<T0, T1, T2, R>(Func<T0, T1, T2, R> func)
+            => ToJSFunctionCore(DotNetObjectReference.Create(new JSFunction<T0, T1, T2, R>(func)));
+
+
+
+
+        dynamic ToJSFunctionCore(IDisposable objRef)
+        {
+            Disposables.Add(objRef);
+
+            //TODO adjust dynamic args
+
+            var sync = (IJSInProcessRuntime)_jsRuntime;
+            var id = sync.Invoke<long>("window.BlazorDynamicJavaScriptHelper.createFunction", objRef, "Function");
+            return new DynamicJSReference(_jsRuntime, id, new List<string>());
+        }
+
+
     }
 
     public static class JSRuntimeExtentions
     {
-        public static dynamic Window(this IJSRuntime jsRuntime, DynamicJSRuntime connection) => new DynamicJSReference(jsRuntime, 0, new List<string>());
-
-        public static dynamic New(this IJSRuntime jsRuntime, DynamicJSRuntime connection) => new DynamicJSNew(jsRuntime);
-
-
-        public static dynamic ToJSFuction(this IJSRuntime jsRuntime, DynamicJSRuntime connection, Action action)
-            => ToJSFunctionCore(jsRuntime, connection, DotNetObjectReference.Create(new JSFunctionVoid(action)));
-
-        public static dynamic ToJSFuction<T0>(this IJSRuntime jsRuntime, DynamicJSRuntime connection, Action<T0> action)
-            => ToJSFunctionCore(jsRuntime, connection, DotNetObjectReference.Create(new JSFunctionVoid<T0>(action)));
-
-        public static dynamic ToJSFuction<T0, T1>(this IJSRuntime jsRuntime, DynamicJSRuntime connection, Action<T0, T1> action)
-            => ToJSFunctionCore(jsRuntime, connection, DotNetObjectReference.Create(new JSFunctionVoid<T0, T1>(action)));
-
-        public static dynamic ToJSFuction<T0, T1, T2>(this IJSRuntime jsRuntime, DynamicJSRuntime connection, Action<T0, T1, T2> action)
-            => ToJSFunctionCore(jsRuntime, connection, DotNetObjectReference.Create(new JSFunctionVoid<T0, T1, T2>(action)));
-
-
-
-        public static dynamic ToJSFuction<R>(this IJSRuntime jsRuntime, DynamicJSRuntime connection, Func<R> func)
-            => ToJSFunctionCore(jsRuntime, connection, DotNetObjectReference.Create(new JSFunction<R>(func)));
-
-        public static dynamic ToJSFuction<T0, R>(this IJSRuntime jsRuntime, DynamicJSRuntime connection, Func<T0, R> func)
-            => ToJSFunctionCore(jsRuntime, connection, DotNetObjectReference.Create(new JSFunction<T0, R>(func)));
-
-        public static dynamic ToJSFuction<T0, T1, R>(this IJSRuntime jsRuntime, DynamicJSRuntime connection, Func<T0, T1, R> func)
-            => ToJSFunctionCore(jsRuntime, connection, DotNetObjectReference.Create(new JSFunction<T0, T1, R>(func)));
-
-        public static dynamic ToJSFuction<T0, T1, T2, R>(this IJSRuntime jsRuntime, DynamicJSRuntime connection, Func<T0, T1, T2, R> func)
-            => ToJSFunctionCore(jsRuntime, connection, DotNetObjectReference.Create(new JSFunction<T0, T1, T2, R>(func)));
-
-
-
-
-        private static dynamic ToJSFunctionCore(IJSRuntime jsRuntime, DynamicJSRuntime connection, IDisposable objRef)
-        {
-            connection.Disposables.Add(objRef);
-
-            //TODO adjust dynamic args
-
-            var sync = (IJSInProcessRuntime)jsRuntime;
-            var id = sync.Invoke<long>("window.BlazorDynamicJavaScriptHelper.createFunction", objRef, "Function");
-            return new DynamicJSReference(jsRuntime, id, new List<string>());
-        }
+        public static DynamicJSRuntime CreateDymaicRuntime(this IJSRuntime jsRuntime) => new DynamicJSRuntime(jsRuntime);
     }
 
 
