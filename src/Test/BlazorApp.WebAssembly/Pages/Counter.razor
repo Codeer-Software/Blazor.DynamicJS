@@ -62,7 +62,7 @@
 
         using var js = JS.CreateDymaicRuntime();
 
-        var window = js.Window();
+        var window = js.GetWindow();
 
         int ret1 = window.func1(1, 2, 3);
         int[] ret2 = window.func2(1, 2, 3);
@@ -76,7 +76,7 @@
         int a = x.a;
 
         //new
-        var rect = js.New().TestTargets.Rectangle(1, 2);
+        var rect = ((IJSSyntax)window.TestTargets.Rectangle).New(1, 2);
         int height = rect.height;
 
         string text = window.document.getElementById("_test").innerText;
