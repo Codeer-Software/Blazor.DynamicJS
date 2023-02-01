@@ -21,12 +21,6 @@ namespace Blazor.DynamicJS
         //getter
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            if (_id == 0 && _accessor.Count == 0 && binder.Name == "window")
-            {
-                result = this;
-                return true;
-            }
-
             var next = _accessor.ToList();
             next.Add(binder.Name);
             result = new DynamicJS(_jsRuntime, _id, next);
