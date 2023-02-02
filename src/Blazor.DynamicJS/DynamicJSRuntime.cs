@@ -28,7 +28,7 @@ namespace Blazor.DynamicJS
 
         public dynamic GetWindow() => new DynamicJS(this, 0, new List<string>());
 
-
+        //return IJSFunction or JSSyntax
         internal dynamic ToJSFunctionCore(IDisposable objRef)
         {
             Disposables.Add(objRef);
