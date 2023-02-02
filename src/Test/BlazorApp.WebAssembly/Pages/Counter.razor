@@ -71,6 +71,13 @@
         window.data = 100;
         window.dataX = new { a = 100, b = 200 };
 
+        window.arrayData = new[] { 1, 2, 3 };
+        window.arrayData[1] = 100;
+        for (int i = 0; i < (int)window.arrayData.length; i++)
+        {
+            window.console.log(window.arrayData[i]);
+        }
+
         var x = window.dataX;
         x.a = x.b;
         int a = x.a;

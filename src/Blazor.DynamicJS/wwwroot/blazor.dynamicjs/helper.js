@@ -33,6 +33,25 @@
         else info.target[info.last] = obj;
     },
 
+    getIndex: function (id, names, index) {
+        if (names.length == 0) return window.BlazorDynamicJavaScriptHelper.objects[id];
+        const info = window.BlazorDynamicJavaScriptHelper.getInvokeInfo(id, names);
+        var obj = (info.target == null) ? window[info.last][index] : info.target[info.last][index];
+        return window.BlazorDynamicJavaScriptHelper.setObject(obj);
+    },
+
+    setIndex: function (id, names, index, obj) {
+        var vals = [obj];
+        window.BlazorDynamicJavaScriptHelper.resolveArgs(vals);
+        obj = vals[0];
+
+
+        const info = window.BlazorDynamicJavaScriptHelper.getInvokeInfo(id, names);
+
+        if (info.target === null) window[info.last][index] = obj;
+        else info.target[info.last][index] = obj;
+    },
+
     getObject: function (id, names) {
         if (names.length == 0) return window.BlazorDynamicJavaScriptHelper.objects[id];
         const info = window.BlazorDynamicJavaScriptHelper.getInvokeInfo(id, names);
