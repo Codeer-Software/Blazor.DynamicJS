@@ -56,6 +56,18 @@ namespace Blazor.DynamicJS
             return new DynamicJS(this, ret, new List<string>());
         }
 
+        internal async Task<dynamic> InvokeAsync(long id, List<string> accessor, object?[] args)
+        {
+            //adjust funcobjects
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] is DynamicJS r) args[i] = r.Marshal();
+            }
+
+            var ret = await _jsRuntime.InvokeAsync<long>("window.BlazorDynamicJavaScriptHelper.invokeMethod", id, accessor, args);
+            return new DynamicJS(this, ret, new List<string>());
+        }
+
         internal object? Convert(Type type, long id, List<string> accessor)
         {
             var converter = typeof(Converter<>).MakeGenericType(type);
@@ -102,6 +114,18 @@ namespace Blazor.DynamicJS
             }
 
             var id = InProcess.Invoke<long>("window.BlazorDynamicJavaScriptHelper.createObject", accessor, args);
+            return new DynamicJS(this, id, new List<string>());
+        }
+
+        internal async Task<dynamic> NewAsync(List<string> accessor, object?[] args)
+        {
+            //adjust funcobjects
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] is DynamicJS r) args[i] = r.Marshal();
+            }
+
+            var id = await _jsRuntime.InvokeAsync<long>("window.BlazorDynamicJavaScriptHelper.createObject", accessor, args);
             return new DynamicJS(this, id, new List<string>());
         }
     }

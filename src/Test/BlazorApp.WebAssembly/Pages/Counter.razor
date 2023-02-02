@@ -68,6 +68,10 @@
         int[] ret2 = window.func2(1, 2, 3);
         int sum = window.sum(1, 2, 3, 4);
 
+
+        int[] ret3 = await ((IJSSyntax)window.func2).InvokeAsync(1, 2, 3);
+
+
         window.data = 100;
         window.dataX = new { a = 100, b = 200 };
 
@@ -84,7 +88,9 @@
 
         //new
         var rect = ((IJSSyntax)window.TestTargets.Rectangle).New(1, 2);
+        var rect2 = await ((IJSSyntax)window.TestTargets.Rectangle).NewAsync(1, 2);
         int height = rect.height;
+        int height2 = rect.height;
 
         string text = window.document.getElementById("_test").innerText;
         window.document.getElementById("_test").innerText = "abc";

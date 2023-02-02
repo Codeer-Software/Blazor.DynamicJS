@@ -1,5 +1,4 @@
 ﻿using System.Dynamic;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Blazor.DynamicJS
 {
@@ -75,6 +74,8 @@ namespace Blazor.DynamicJS
         }
 
         public dynamic New(params object?[] args) => _jsRuntime.New(_accessor, args);
+        public async Task<dynamic> NewAsync(params object?[] args) => await _jsRuntime.NewAsync(_accessor, args);
+        public async Task<dynamic> InvokeAsync(params object?[] args) => await _jsRuntime.InvokeAsync(_id, _accessor, args);
 
         internal ReferenceInfo Marshal() => new ReferenceInfo { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
 
