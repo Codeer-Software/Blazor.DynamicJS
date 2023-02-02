@@ -1,17 +1,14 @@
 ﻿using System.Dynamic;
-using Microsoft.JSInterop;
 
 namespace Blazor.DynamicJS
 {
-    //implements at DynamicJSRuntime
-
     internal class DynamicJS : DynamicObject, IJSSyntax
     {
-        IJSRuntime _jsRuntime;
+        DynamicJSRuntime _jsRuntime;
         long _id;
         List<string> _accessor;
 
-        internal DynamicJS(IJSRuntime jsRuntime, long id, List<string> accessor)
+        internal DynamicJS(DynamicJSRuntime jsRuntime, long id, List<string> accessor)
         {
             _jsRuntime = jsRuntime;
             _accessor = accessor;
@@ -34,9 +31,8 @@ namespace Blazor.DynamicJS
             next.Add(binder.Name);
 
             if (value is DynamicJS r) value = r.Marshal();
-            
-            var sync = (IJSInProcessRuntime)_jsRuntime;
-            sync.InvokeVoid("window.BlazorDynamicJavaScriptHelper.setProperty", _id, next, value);
+
+            _jsRuntime.SetValue(_id, next, value);
             return true;
         }
 
@@ -45,24 +41,21 @@ namespace Blazor.DynamicJS
         {
             var next = _accessor.ToList();
             next.Add(binder.Name);
-
-            //adjust funcobjects
-            args = args ?? new object[0];
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i] is DynamicJS r) args[i] = r.Marshal();
-            }
-
-            var sync = (IJSInProcessRuntime)_jsRuntime;
-            var id = sync.Invoke<long>("window.BlazorDynamicJavaScriptHelper.invokeMethod", _id, next, args);
-            result = new DynamicJS(_jsRuntime, id, new List<string>());
+            result = _jsRuntime.InvokeMethod(_id, next, args ?? new object[0]);
             return true;
         }
 
+        //cast
         public override bool TryConvert(ConvertBinder binder, out object? result)
         {
-            var converter = typeof(Converter<>).MakeGenericType(binder.Type);
-            result = converter.GetMethod("Convert")!.Invoke(null, new object[] { _jsRuntime, _id, _accessor });
+            result = _jsRuntime.Convert(binder.Type, _id, _accessor);
+            return true;
+        }
+
+        //function
+        public override bool TryInvoke(InvokeBinder binder, object?[]? args, out object? result)
+        {
+            result = _jsRuntime.InvokeFunctionObject(_id, _accessor, args ?? new object[0]);
             return true;
         }
 
@@ -81,46 +74,10 @@ namespace Blazor.DynamicJS
             return true;
         }
         */
-        
-        //function
-        public override bool TryInvoke(InvokeBinder binder, object?[]? args, out object? result)
-        {
-            args = args ?? new object[0];
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i] is DynamicJS r) args[i] = r.Marshal();
-            }
 
-            var sync = (IJSInProcessRuntime)_jsRuntime;
-            var id = sync.Invoke<long>("window.BlazorDynamicJavaScriptHelper.invokeMethod", _id, _accessor, args);
-            result = new DynamicJS(_jsRuntime, id, new List<string>());
-            return true;
-        }
-        
+        internal ReferenceInfo Marshal() => new ReferenceInfo { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
 
-        ReferenceInfo Marshal() => new ReferenceInfo { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
-
-        public class Converter<T>
-        {
-            public static T Convert(IJSRuntime jsRuntime, long id, List<string> accessor)
-            {
-                var sync = (IJSInProcessRuntime)jsRuntime;
-                return sync.Invoke<T>("window.BlazorDynamicJavaScriptHelper.getObject", id, accessor);
-            }
-        }
-
-        internal DynamicJS New(object?[] args)
-        {
-            args = args ?? new object[0];
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i] is DynamicJS r) args[i] = r.Marshal();
-            }
-
-            var sync = (IJSInProcessRuntime)_jsRuntime;
-            var id = sync.Invoke<long>("window.BlazorDynamicJavaScriptHelper.createObject", _accessor, args);
-            return new DynamicJS(_jsRuntime, id, new List<string>());
-        }
+        public dynamic New(params object?[] args) => _jsRuntime.New(_accessor, args);
 
         public class ReferenceInfo
         {
