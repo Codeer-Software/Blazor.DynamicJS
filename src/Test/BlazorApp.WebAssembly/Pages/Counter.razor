@@ -37,7 +37,7 @@
     {
         await Task.CompletedTask;
 
-        using var js = await JS.CreateDymaicReferenceAsync();
+        using var js = await JS.CreateDymaicRuntimeAsync();
 
         var window = js.GetWindow();
 
@@ -89,7 +89,7 @@
     {
         await Task.CompletedTask;
 
-        using var js = await JS.CreateDymaicReferenceAsync();
+        using var js = await JS.CreateDymaicRuntimeAsync();
 
         var func = js.ToJSFuction(() =>
         {

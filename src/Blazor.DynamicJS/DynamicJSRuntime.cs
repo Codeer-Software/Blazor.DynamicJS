@@ -2,14 +2,14 @@
 
 namespace Blazor.DynamicJS
 {
-    public class DynamicJSReference : IDisposable, IAsyncDisposable
+    public class DynamicJSRuntime : IDisposable, IAsyncDisposable
     {
         readonly Guid _guid;
         readonly IJSObjectReference _helper;
 
         IJSInProcessObjectReference InProcessHelper => (IJSInProcessObjectReference)_helper;
 
-        internal DynamicJSReference(IJSObjectReference helper)
+        internal DynamicJSRuntime(IJSObjectReference helper)
         {
             _helper = helper;
             _guid = Guid.NewGuid();

@@ -4,11 +4,11 @@ namespace Blazor.DynamicJS
 {
     internal class DynamicJS : DynamicObject, IJSSyntax
     {
-        DynamicJSReference _jsRuntime;
+        DynamicJSRuntime _jsRuntime;
         long _id;
         List<string> _accessor;
 
-        internal DynamicJS(DynamicJSReference jsRuntime, long id, List<string> accessor)
+        internal DynamicJS(DynamicJSRuntime jsRuntime, long id, List<string> accessor)
         {
             _jsRuntime = jsRuntime;
             _accessor = accessor;
