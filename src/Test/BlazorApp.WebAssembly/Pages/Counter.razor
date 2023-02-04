@@ -36,7 +36,6 @@
         currentCount = (int)w.ElapsedMilliseconds;
     }
 
-
     private async Task TestCore1()
     {
         await Task.CompletedTask;
@@ -48,7 +47,6 @@
         int ret1 = window.func1(1, 2, 3);
         int[] ret2 = window.func2(1, 2, 3);
         int sum = window.sum(1, 2, 3, 4);
-
 
         int[] ret3 = await ((IJSSyntax)window.func2).InvokeAsync(1, 2, 3);
 
@@ -108,8 +106,13 @@
             return js.ToJS(a + (int)b + c);
 
         });
-
         int val = func2(1, 2, 3);
+
+        var window = js.GetWindow();
+        window.FuncTestX = (Func<int, int, int>)((a, b)=>a + b);
+
+
+        int val2 = window.FuncTestX(1, 2);
     }
 
     private async Task TestCore3()

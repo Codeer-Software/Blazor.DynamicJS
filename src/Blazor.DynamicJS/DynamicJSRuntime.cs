@@ -39,20 +39,11 @@ namespace Blazor.DynamicJS
 
         public dynamic ToJS(object obj)
         {
-            if (JSFunctionHelper.Create(this, obj, out var function, out var dynamicIndexes))
-            {
-                var wrapper = typeof(DotNetObjectReferenceWrapper<>).MakeGenericType(function.GetType());
-                var objRef = (IDisposable)wrapper.GetMethod("Create")!.Invoke(null, new object[] { function })!;
+            var function = ToJSFunction(obj);
+            if (function != null) return function;
 
-                _disposables.Add(objRef);
-                var objId = _helper.Invoke<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
-                return new DynamicJS(this, objId, new List<string>());
-            }
-            else
-            {
-                var objId = _helper.Invoke<long>("setObject", _guid, obj);
-                return new DynamicJS(this, objId, new List<string>());
-            }
+            var objId = _helper.Invoke<long>("setObject", _guid, obj);
+            return new DynamicJS(this, objId, new List<string>());
         }
 
         internal void SetValue(long objId, List<string> accessor, object? value)
@@ -124,11 +115,32 @@ namespace Blazor.DynamicJS
             return (J)(object)src!;
         }
 
-        static object?[] AdjustArguments(object[] args)
+        object?[] AdjustArguments(object[] args)
             => args.Select(e => AdjustObject(e)).ToArray();
 
-        static object? AdjustObject(object? src)
-            => (src is DynamicJS r) ? r.Marshal() : src;
+        object? AdjustObject(object? src)
+        {
+            if (src is DynamicJS dynamicJs) return dynamicJs.Marshal();
+
+            var function = ToJSFunction(src);
+            if (function != null) return ((DynamicJS)function).Marshal();
+
+            return src;
+        }
+
+        dynamic? ToJSFunction(object? obj)
+        {
+            if (obj == null) return null;
+
+            if (!JSFunctionHelper.Create(this, obj, out var function, out var dynamicIndexes)) return null;
+
+            var wrapper = typeof(DotNetObjectReferenceWrapper<>).MakeGenericType(function.GetType());
+            var objRef = (IDisposable)wrapper.GetMethod("Create")!.Invoke(null, new object[] { function })!;
+
+            _disposables.Add(objRef);
+            var objId = _helper.Invoke<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
+            return new DynamicJS(this, objId, new List<string>());
+        }
 
         public class DotNetObjectReferenceWrapper<T> where T : class
         {
