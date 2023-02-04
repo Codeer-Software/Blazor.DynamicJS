@@ -36,7 +36,7 @@
     {
         await Task.CompletedTask;
 
-        using var js = JS.CreateDymaicRuntime();
+        using var js = await JS.CreateDymaicRuntimeAsync();
 
         var func = js.ToJSFuction(() =>
         {
@@ -60,7 +60,7 @@
     {
         await Task.CompletedTask;
 
-        using var js = JS.CreateDymaicRuntime();
+        using var js = await JS.CreateDymaicRuntimeAsync();
 
         var window = js.GetWindow();
 

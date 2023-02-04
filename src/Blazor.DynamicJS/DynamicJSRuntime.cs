@@ -5,13 +5,13 @@ namespace Blazor.DynamicJS
     public class DynamicJSRuntime : IDisposable, IAsyncDisposable
     {
         readonly Guid _guid;
-        readonly IJSRuntime _jsRuntime;
+        readonly IJSObjectReference _helper;
 
-        IJSInProcessRuntime InProcess => (IJSInProcessRuntime)_jsRuntime;
+        IJSInProcessObjectReference InProcessHelper => (IJSInProcessObjectReference)_helper;
 
-        internal DynamicJSRuntime(IJSRuntime jsRuntime)
+        internal DynamicJSRuntime(IJSObjectReference helper)
         {
-            _jsRuntime = jsRuntime;
+            _helper = helper;
             _guid = Guid.NewGuid();
         }
         internal List<IDisposable> Disposables { get; } = new List<IDisposable>();
@@ -34,14 +34,14 @@ namespace Blazor.DynamicJS
 
             //TODO adjust dynamic args
 
-            var id = InProcess.Invoke<long>("window.BlazorDynamicJavaScriptHelper.createFunction", objRef, "Function");
+            var id = InProcessHelper.Invoke<long>("createFunction", objRef, "Function");
             return new DynamicJS(this, id, new List<string>());
         }
 
 
         internal void SetValue(long id, List<string> accessor, object? value)
         {
-            InProcess.InvokeVoid("window.BlazorDynamicJavaScriptHelper.setProperty", id, accessor, value);
+            InProcessHelper.InvokeVoid("setProperty", id, accessor, value);
         }
 
         internal DynamicJS InvokeMethod(long id, List<string> accessor, object?[] args)
@@ -52,7 +52,7 @@ namespace Blazor.DynamicJS
                 if (args[i] is DynamicJS r) args[i] = r.Marshal();
             }
 
-            var ret = InProcess.Invoke<long>("window.BlazorDynamicJavaScriptHelper.invokeMethod", id, accessor, args);
+            var ret = InProcessHelper.Invoke<long>("invokeMethod", id, accessor, args);
             return new DynamicJS(this, ret, new List<string>());
         }
 
@@ -64,14 +64,14 @@ namespace Blazor.DynamicJS
                 if (args[i] is DynamicJS r) args[i] = r.Marshal();
             }
 
-            var ret = await _jsRuntime.InvokeAsync<long>("window.BlazorDynamicJavaScriptHelper.invokeMethod", id, accessor, args);
+            var ret = await _helper.InvokeAsync<long>("invokeMethod", id, accessor, args);
             return new DynamicJS(this, ret, new List<string>());
         }
 
         internal object? Convert(Type type, long id, List<string> accessor)
         {
             var converter = typeof(Converter<>).MakeGenericType(type);
-            return converter.GetMethod("Convert")!.Invoke(null, new object[] { _jsRuntime, id, accessor });
+            return converter.GetMethod("Convert")!.Invoke(null, new object[] { _helper, id, accessor });
         }
         
         internal DynamicJS InvokeFunctionObject(long id, List<string> accessor, object?[] args)
@@ -82,26 +82,26 @@ namespace Blazor.DynamicJS
                 if (args[i] is DynamicJS r) args[i] = r.Marshal();
             }
 
-            var ret = InProcess.Invoke<long>("window.BlazorDynamicJavaScriptHelper.invokeMethod", id, accessor, args);
+            var ret = InProcessHelper.Invoke<long>("invokeMethod", id, accessor, args);
             return new DynamicJS(this, ret, new List<string>());
         }
 
         internal object? GetIndex(long id, List<string> accessor, object[] indexes)
         {
-            var ret = InProcess.Invoke<long>("window.BlazorDynamicJavaScriptHelper.getIndex", id, accessor, indexes[0]);
+            var ret = InProcessHelper.Invoke<long>("getIndex", id, accessor, indexes[0]);
             return new DynamicJS(this, ret, new List<string>());
         }
 
         internal void SetIndex(long id, List<string> accessor, object[] indexes, object? value)
         {
-            InProcess.InvokeVoid("window.BlazorDynamicJavaScriptHelper.setIndex", id, accessor, indexes[0], value);
+            InProcessHelper.InvokeVoid("setIndex", id, accessor, indexes[0], value);
         }
 
         public class Converter<T>
         {
-            public static T Convert(IJSInProcessRuntime inProcess, long id, List<string> accessor)
+            public static T Convert(IJSInProcessObjectReference inProcess, long id, List<string> accessor)
             {
-                return inProcess.Invoke<T>("window.BlazorDynamicJavaScriptHelper.getObject", id, accessor);
+                return inProcess.Invoke<T>("getObject", id, accessor);
             }
         }
 
@@ -113,7 +113,7 @@ namespace Blazor.DynamicJS
                 if (args[i] is DynamicJS r) args[i] = r.Marshal();
             }
 
-            var id = InProcess.Invoke<long>("window.BlazorDynamicJavaScriptHelper.createObject", accessor, args);
+            var id = InProcessHelper.Invoke<long>("createObject", accessor, args);
             return new DynamicJS(this, id, new List<string>());
         }
 
@@ -125,7 +125,7 @@ namespace Blazor.DynamicJS
                 if (args[i] is DynamicJS r) args[i] = r.Marshal();
             }
 
-            var id = await _jsRuntime.InvokeAsync<long>("window.BlazorDynamicJavaScriptHelper.createObject", accessor, args);
+            var id = await _helper.InvokeAsync<long>("createObject", accessor, args);
             return new DynamicJS(this, id, new List<string>());
         }
     }
