@@ -21,4 +21,8 @@
     </Content>
   </ItemGroup>
 
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="xcopy &quot;$(SolutionDir)\Blazor.DynamicJS\wwwroot\blazor.dynamicjs&quot; &quot;$(SolutionDir)\Test\BlazorApp.WebAssembly\wwwroot\blazor.dynamicjs&quot; /Y /R" />
+  </Target>
+
 </Project>
