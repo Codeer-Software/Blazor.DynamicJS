@@ -26,41 +26,18 @@
         w.Start();
 
         await TestCore1();
+        await TestCore2();
 
         w.Stop();
         currentCount = (int)w.ElapsedMilliseconds;
     }
 
 
-    private async Task TestCore()
-    {
-        await Task.CompletedTask;
-
-        using var js = await JS.CreateDymaicRuntimeAsync();
-
-        var func = js.ToJSFuction(() =>
-        {
-
-            int dmy = 0;
-
-        });
-        func();
-
-        var func2 = js.ToJSFuction((int a, int b, int c) =>
-        {
-
-            return a + b + c;
-
-        });
-
-        int val = func2(1, 2, 3);
-    }
-
     private async Task TestCore1()
     {
         await Task.CompletedTask;
 
-        using var js = await JS.CreateDymaicRuntimeAsync();
+        using var js = await JS.CreateDymaicReferenceAsync();
 
         var window = js.GetWindow();
 
@@ -108,8 +85,30 @@
         parentDiv.insertBefore(newElement, childP3);
     }
 
+    private async Task TestCore2()
+    {
+        await Task.CompletedTask;
 
-    
+        using var js = await JS.CreateDymaicReferenceAsync();
+
+        var func = js.ToJSFuction(() =>
+        {
+
+            int dmy = 0;
+
+        });
+        func();
+
+        var func2 = js.ToJSFuction((int a, int b, int c) =>
+        {
+
+            return a + b + c;
+
+        });
+
+        int val = func2(1, 2, 3);
+    }
+
     private int currentCount = 0;
     private async Task IncrementCountX()
     {

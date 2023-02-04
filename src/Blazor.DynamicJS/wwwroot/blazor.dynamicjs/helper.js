@@ -1,21 +1,21 @@
 ﻿let objectIdCreate = 0;
 let objects = {};
 
-export function invokeMethod (objId, names, theArgs) {
+export function invokeMethod(cspRefeenceId, objId, names, theArgs) {
 
     resolveArgs(theArgs);
 
     if (names.length == 0 && objId != 0) {
         //functionが入っている場合
-        const obj = objects[objId](...theArgs);
-        return setObject(obj);
+        const obj = objects[objId].obj(...theArgs);
+        return setObject(cspRefeenceId, obj, cspRefeenceId);
     }
     else {
         const info = getInvokeInfo(objId, names);
         const obj = info.target == null ?
             window[info.last].apply(info.target, theArgs) :
             info.target[info.last].apply(info.target, theArgs);
-        return setObject(obj);
+        return setObject(cspRefeenceId, obj, cspRefeenceId);
     }
 }
 
@@ -31,18 +31,17 @@ export function setProperty (objId, names, obj) {
     else info.target[info.last] = obj;
 }
 
-export function getIndex (objId, names, index) {
-    if (names.length == 0) return objects[objId];
+export function getIndex(cspRefeenceId, objId, names, index) {
+    if (names.length == 0) return objects[objId].obj;
     const info = getInvokeInfo(objId, names);
     var obj = (info.target == null) ? window[info.last][index] : info.target[info.last][index];
-    return setObject(obj);
+    return setObject(cspRefeenceId, obj, cspRefeenceId);
 }
 
 export function setIndex (objId, names, index, obj) {
     var vals = [obj];
     resolveArgs(vals);
     obj = vals[0];
-
 
     const info = getInvokeInfo(objId, names);
 
@@ -51,18 +50,18 @@ export function setIndex (objId, names, index, obj) {
 }
 
 export function getObject (objId, names) {
-    if (names.length == 0) return objects[objId];
+    if (names.length == 0) return objects[objId].obj;
     const info = getInvokeInfo(objId, names);
     return (info.target == null) ? window[info.last] : info.target[info.last];
 }
 
-export function setObject (obj) {
+export function setObject(cspRefeenceId, obj) {
     const objId = ++objectIdCreate;
-    objects[objId] = obj;
+    objects[objId] = { obj, cspRefeenceId };
     return objId;
 }
 
-export function createObject (names, theArgs) {
+export function createObject(cspRefeenceId, names, theArgs) {
 
     resolveArgs(theArgs);
 
@@ -71,24 +70,32 @@ export function createObject (names, theArgs) {
     const c = info.target == null ? window[info.last] : info.target[info.last];
     const obj = new c(...theArgs);
 
-    return setObject(obj);
+    return setObject(cspRefeenceId, obj, cspRefeenceId);
 }
 
-export function createFunction (objRef, method) {
+export function createFunction(cspRefeenceId, objRef, method) {
     var func = (...theArgs) => {
         return objRef.invokeMethod(method, ...theArgs);
     }
-    return setObject(func);
+    return setObject(cspRefeenceId, func, cspRefeenceId);
 }
 
-export function resolveArgs (theArgs) {
+export function dispose(cspRefeenceId) {
+    for (let key in objects) {
+        if (objects[key].cspRefeenceId === cspRefeenceId) {
+            delete objects[key];
+        }
+    }
+}
+
+function resolveArgs (theArgs) {
     for (let i = 0; i < theArgs.length; i++) {
         if (theArgs[i].hasOwnProperty("blazorDynamicJavaScriptObjectId")) {
             var objId = theArgs[i]["blazorDynamicJavaScriptObjectId"];
             var names = theArgs[i]["blazorDynamicJavaScriptUnresolvedNames"];
 
             if (names.length == 0) {
-                theArgs[i] = objects[objId];
+                theArgs[i] = objects[objId].obj;
             } else {
                 const info = getInvokeInfo(objId, names);
                 const obj = (info.target == null) ? window[info.last] : info.target[info.last];
@@ -98,12 +105,12 @@ export function resolveArgs (theArgs) {
     }
 }
 
-export function getInvokeInfo (objId, names) {
+function getInvokeInfo (objId, names) {
     const last = names.slice(-1)[0];
     const others = names.slice(0, -1);
     let target = null;
     if (objId != 0) {
-        target = objects[objId];
+        target = objects[objId].obj;
     }
     for (let e of others) {
         if (target == null) target = window[e];
