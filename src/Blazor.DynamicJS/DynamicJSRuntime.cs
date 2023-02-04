@@ -6,6 +6,7 @@ namespace Blazor.DynamicJS
     {
         readonly Guid _guid;
         readonly IJSObjectReference _helper;
+        List<IDisposable> _disposables = new List<IDisposable>();
 
         IJSInProcessObjectReference InProcessHelper => (IJSInProcessObjectReference)_helper;
 
@@ -14,18 +15,32 @@ namespace Blazor.DynamicJS
             _helper = helper;
             _guid = Guid.NewGuid();
         }
-        internal List<IDisposable> Disposables { get; } = new List<IDisposable>();
 
-        public void Dispose() => InProcessHelper.InvokeVoid("dispose", _guid);
+        public void Dispose()
+        {
+            _disposables.ForEach(e => e.Dispose());
+            _disposables = new List<IDisposable>();
+            InProcessHelper.InvokeVoid("dispose", _guid);
+        }
 
-        public async ValueTask DisposeAsync() => await _helper.InvokeVoidAsync("dispose", _guid);
+        public async ValueTask DisposeAsync()
+        {
+            _disposables.ForEach(e => e.Dispose());
+            _disposables = new List<IDisposable>();
+            await _helper.InvokeVoidAsync("dispose", _guid);
+        }
 
         public dynamic GetWindow() => new DynamicJS(this, 0, new List<string>());
+
+        //TODO import
+
+        //TODO element
+
 
         //return IJSFunction or JSSyntax
         internal dynamic ToJSFunctionCore(IDisposable objRef)
         {
-            Disposables.Add(objRef);
+            _disposables.Add(objRef);
 
             //TODO adjust dynamic args
 
@@ -36,6 +51,7 @@ namespace Blazor.DynamicJS
 
         internal void SetValue(long id, List<string> accessor, object? value)
         {
+            if (value is DynamicJS r) value = r.Marshal();
             InProcessHelper.InvokeVoid("setProperty", id, accessor, value);
         }
 
