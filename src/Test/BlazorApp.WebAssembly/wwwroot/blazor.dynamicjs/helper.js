@@ -61,6 +61,14 @@ export function setObject(cspRefeenceId, obj) {
     return objId;
 }
 
+export async function importModule(cspRefeenceId, path) {
+    const mod = await import(path);
+    const id = setObject(cspRefeenceId, mod);
+    return new Promise(resolve => {
+        resolve(id);
+    }); 
+}
+
 export function createObject(cspRefeenceId, names, theArgs) {
 
     resolveArgs(theArgs);

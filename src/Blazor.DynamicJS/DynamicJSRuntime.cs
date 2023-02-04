@@ -32,10 +32,17 @@ namespace Blazor.DynamicJS
 
         public dynamic GetWindow() => new DynamicJS(this, 0, new List<string>());
 
-        //TODO import
+        public async Task<dynamic> ImportAsync(string path)
+        {
+            var id = await _helper.InvokeAsync<long>("importModule", _guid, path);
+            return new DynamicJS(this, id, new List<string>());
+        }
 
-        //TODO element
-
+        public dynamic ToJSObject(object obj)
+        {
+            var id = InProcessHelper.Invoke<long>("setObject", _guid, obj);
+            return new DynamicJS(this, id, new List<string>());
+        }
 
         //return IJSFunction or JSSyntax
         internal dynamic ToJSFunctionCore(IDisposable objRef)

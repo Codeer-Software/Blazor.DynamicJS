@@ -13,6 +13,7 @@
 <button class="btn btn-primary" @onclick="Test">Click me</button>
 
 <label id="_test">test</label>
+<div @ref="divElement">Text during render</div>
 
 <div id="parent-div">
   <p id="child-p1">child 1</p>
@@ -20,6 +21,8 @@
 </div>
 
 @code {
+    ElementReference divElement;
+
     private async Task Test()
     {
         var w = new Stopwatch();
@@ -27,6 +30,7 @@
 
         await TestCore1();
         await TestCore2();
+        await TestCore3();
 
         w.Stop();
         currentCount = (int)w.ElapsedMilliseconds;
@@ -47,7 +51,6 @@
 
 
         int[] ret3 = await ((IJSSyntax)window.func2).InvokeAsync(1, 2, 3);
-
 
         window.data = 100;
         window.dataX = new { a = 100, b = 200 };
@@ -77,11 +80,11 @@
         var newContent = window.document.createTextNode("child 2"); 
         newElement.appendChild(newContent);
         newElement.setAttribute("id","child-p2"); 
- 
+
         var parentDiv = window.document.getElementById("parent-div");
- 
+
         var childP3 = window.document.getElementById("child-p3");
- 
+
         parentDiv.insertBefore(newElement, childP3);
     }
 
@@ -107,6 +110,23 @@
         });
 
         int val = func2(1, 2, 3);
+    }
+
+    private async Task TestCore3()
+    {
+        await Task.CompletedTask;
+
+        using var js = await JS.CreateDymaicRuntimeAsync();
+        var mod = await js.ImportAsync("./exp.js");
+
+        int x = mod.add(1, 2);
+
+        var y = js.ToJSObject(new { a = 100, b = "abc" });
+
+        var z = js.ToJSObject(divElement);
+        z.innerText = "zzz";
+
+
     }
 
     private int currentCount = 0;
