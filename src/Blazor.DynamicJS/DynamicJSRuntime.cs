@@ -1,5 +1,4 @@
 ﻿using Microsoft.JSInterop;
-using System;
 
 namespace Blazor.DynamicJS
 {
@@ -64,31 +63,18 @@ namespace Blazor.DynamicJS
 
         internal void SetValue(long id, List<string> accessor, object? value)
         {
-            if (value is DynamicJS r) value = r.Marshal();
-            InProcessHelper.InvokeVoid("setProperty", id, accessor, value);
+            InProcessHelper.InvokeVoid("setProperty", id, accessor, AdjustObject(value));
         }
 
         internal DynamicJS InvokeMethod(long id, List<string> accessor, object?[] args)
         {
-            //adjust funcobjects
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i] is DynamicJS r) args[i] = r.Marshal();
-            }
-
-            var ret = InProcessHelper.Invoke<long>("invokeMethod", _guid, id, accessor, args);
+            var ret = InProcessHelper.Invoke<long>("invokeMethod", _guid, id, accessor, AdjustArguments(args!));
             return new DynamicJS(this, ret, new List<string>());
         }
 
         internal async Task<dynamic> InvokeAsync(long id, List<string> accessor, object?[] args)
         {
-            //adjust funcobjects
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i] is DynamicJS r) args[i] = r.Marshal();
-            }
-
-            var ret = await _helper.InvokeAsync<long>("invokeMethod", _guid, id, accessor, args);
+            var ret = await _helper.InvokeAsync<long>("invokeMethod", _guid, id, accessor, AdjustArguments(args!));
             return new DynamicJS(this, ret, new List<string>());
         }
 
@@ -100,13 +86,7 @@ namespace Blazor.DynamicJS
         
         internal DynamicJS InvokeFunctionObject(long id, List<string> accessor, object?[] args)
         {
-            //adjust funcobjects
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i] is DynamicJS r) args[i] = r.Marshal();
-            }
-
-            var ret = InProcessHelper.Invoke<long>("invokeMethod", _guid, id, accessor, args);
+            var ret = InProcessHelper.Invoke<long>("invokeMethod", _guid, id, accessor, AdjustArguments(args!));
             return new DynamicJS(this, ret, new List<string>());
         }
 
@@ -131,25 +111,13 @@ namespace Blazor.DynamicJS
 
         internal DynamicJS New(List<string> accessor, object?[] args)
         {
-            //adjust funcobjects
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i] is DynamicJS r) args[i] = r.Marshal();
-            }
-
-            var id = InProcessHelper.Invoke<long>("createObject", _guid, accessor, args);
+            var id = InProcessHelper.Invoke<long>("createObject", _guid, accessor, AdjustArguments(args!));
             return new DynamicJS(this, id, new List<string>());
         }
 
         internal async Task<dynamic> NewAsync(List<string> accessor, object?[] args)
         {
-            //adjust funcobjects
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i] is DynamicJS r) args[i] = r.Marshal();
-            }
-
-            var id = await _helper.InvokeAsync<long>("createObject", _guid, accessor, args);
+            var id = await _helper.InvokeAsync<long>("createObject", _guid, accessor, AdjustArguments(args!));
             return new DynamicJS(this, id, new List<string>());
         }
 
@@ -170,6 +138,15 @@ namespace Blazor.DynamicJS
                 return (J)(object)ds.Marshal();
             }
             return (J)(object)src!;
+        }
+
+        static object[] AdjustArguments(object[] args)
+            => args.Select(e => AdjustObject(e)).ToArray();
+
+        static object AdjustObject(object? e)
+        {
+            if (e is DynamicJS r) return r.Marshal();
+            return e;
         }
     }
 }
