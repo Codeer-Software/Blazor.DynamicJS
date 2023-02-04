@@ -121,9 +121,9 @@
 
         int x = mod.add(1, 2);
 
-        var y = js.ToJSObject(new { a = 100, b = "abc" });
+        var y = js.ToJS(new { a = 100, b = "abc" });
 
-        var z = js.ToJSObject(divElement);
+        var z = js.ToJS(divElement);
         z.innerText = "zzz";
 
 

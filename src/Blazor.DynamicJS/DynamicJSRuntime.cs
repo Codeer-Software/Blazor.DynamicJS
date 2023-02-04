@@ -38,7 +38,7 @@ namespace Blazor.DynamicJS
             return new DynamicJS(this, id, new List<string>());
         }
 
-        public dynamic ToJSObject(object obj)
+        public dynamic ToJS(object obj)
         {
             var id = InProcessHelper.Invoke<long>("setObject", _guid, obj);
             return new DynamicJS(this, id, new List<string>());
