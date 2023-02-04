@@ -44,17 +44,25 @@ namespace Blazor.DynamicJS
             return new DynamicJS(this, id, new List<string>());
         }
 
-        //return IJSFunction or JSSyntax
-        internal dynamic ToJSFunctionCore(IDisposable objRef)
+        internal dynamic ToJSFunctionCore(Type type, Type[] types, object func)
         {
-            _disposables.Add(objRef);
+            type = types.Any() ? type.MakeGenericType(types) : type;
+            var obj = type.GetConstructors().First().Invoke(new[] { func });
 
             //TODO adjust dynamic args
+            var wrapper = typeof(DotNetObjectReferenceWrapper<>).MakeGenericType(type);
+            var objRef = (IDisposable)wrapper.GetMethod("Create")!.Invoke(null, new object[] { obj })!;
+
+            _disposables.Add(objRef);
 
             var id = InProcessHelper.Invoke<long>("createFunction", _guid, objRef, "Function");
             return new DynamicJS(this, id, new List<string>());
         }
 
+        public class DotNetObjectReferenceWrapper<T> where T : class
+        {
+            public static DotNetObjectReference<T> Create(T obj) => DotNetObjectReference.Create(obj);
+        }
 
         internal void SetValue(long id, List<string> accessor, object? value)
         {
