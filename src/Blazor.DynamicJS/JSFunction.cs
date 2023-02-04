@@ -21,6 +21,7 @@ namespace Blazor.DynamicJS
     {
         Action<C0> _core;
         DynamicJSRuntime _js;
+
         public JSFunctionVoid(DynamicJSRuntime js, Action<C0> core)
         {
             _js = js;
