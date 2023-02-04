@@ -94,7 +94,7 @@
 
         using var js = await JS.CreateDymaicRuntimeAsync();
 
-        var func = js.ToJSFuction(() =>
+        var func = js.ToJS(() =>
         {
 
             int dmy = 0;
@@ -102,10 +102,10 @@
         });
         func();
 
-        var func2 = js.ToJSFuction((int a, int b, int c) =>
+        var func2 = js.ToJS((int a, dynamic b, int c) =>
         {
 
-            return a + b + c;
+            return js.ToJS(a + (int)b + c);
 
         });
 

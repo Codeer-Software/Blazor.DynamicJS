@@ -1,4 +1,5 @@
 ﻿using Microsoft.JSInterop;
+using System;
 
 namespace Blazor.DynamicJS
 {
@@ -40,23 +41,20 @@ namespace Blazor.DynamicJS
 
         public dynamic ToJS(object obj)
         {
-            var id = InProcessHelper.Invoke<long>("setObject", _guid, obj);
-            return new DynamicJS(this, id, new List<string>());
-        }
+            if (JSFunctionHelper.Create(this, obj, out var function, out var dynamicIndexes))
+            {
+                var wrapper = typeof(DotNetObjectReferenceWrapper<>).MakeGenericType(function.GetType());
+                var objRef = (IDisposable)wrapper.GetMethod("Create")!.Invoke(null, new object[] { function })!;
 
-        internal dynamic ToJSFunctionCore(Type type, Type[] types, object func)
-        {
-            type = types.Any() ? type.MakeGenericType(types) : type;
-            var obj = type.GetConstructors().First().Invoke(new[] { func });
-
-            //TODO adjust dynamic args
-            var wrapper = typeof(DotNetObjectReferenceWrapper<>).MakeGenericType(type);
-            var objRef = (IDisposable)wrapper.GetMethod("Create")!.Invoke(null, new object[] { obj })!;
-
-            _disposables.Add(objRef);
-
-            var id = InProcessHelper.Invoke<long>("createFunction", _guid, objRef, "Function");
-            return new DynamicJS(this, id, new List<string>());
+                _disposables.Add(objRef);
+                var id = InProcessHelper.Invoke<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
+                return new DynamicJS(this, id, new List<string>());
+            }
+            else
+            {
+                var id = InProcessHelper.Invoke<long>("setObject", _guid, obj);
+                return new DynamicJS(this, id, new List<string>());
+            }
         }
 
         public class DotNetObjectReferenceWrapper<T> where T : class
@@ -153,6 +151,25 @@ namespace Blazor.DynamicJS
 
             var id = await _helper.InvokeAsync<long>("createObject", _guid, accessor, args);
             return new DynamicJS(this, id, new List<string>());
+        }
+
+        internal C J2C<J, C>(J src)
+        {
+            if (typeof(C) == typeof(object))
+            {
+                return (C)(object)new DynamicJS(this, (long)(object)src!, new List<string>());
+            }
+            return (C)(object)src!;
+        }
+
+        internal J C2J<C, J>(C src)
+        {
+            if (src is DynamicJS ds)
+            {
+                var x = typeof(J).ToString();
+                return (J)(object)ds.Marshal();
+            }
+            return (J)(object)src!;
         }
     }
 }
