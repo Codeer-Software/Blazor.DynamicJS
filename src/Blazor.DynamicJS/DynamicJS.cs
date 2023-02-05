@@ -1,4 +1,5 @@
 ﻿using System.Dynamic;
+using System.Reflection;
 
 namespace Blazor.DynamicJS
 {
@@ -29,9 +30,6 @@ namespace Blazor.DynamicJS
         {
             var next = _accessor.ToList();
             next.Add(binder.Name);
-
-            if (value is DynamicJS r) value = r.ToJsonable();
-
             _jsRuntime.SetValue(_id, next, value);
             return true;
         }
@@ -79,6 +77,58 @@ namespace Blazor.DynamicJS
 
         public async Task<dynamic> InvokeAsync(params object?[] args) => await _jsRuntime.InvokeAsync(_id, _accessor, args);
 
-        internal JSReferenceJsonableData ToJsonable() => new JSReferenceJsonableData { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
+        public TInterface Pin<TInterface>() => DynamicJSProxy<TInterface>.CreateEx(this);
+
+        //SetValueAsync
+        //GetValueAsync
+        //SetIndexValueAsync
+        //GetIndexValueAsync
+
+
+        internal JSReferenceJsonableData ToJsonable()
+            => new JSReferenceJsonableData { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
+
+        internal object? InvokeProxyMethod(MethodInfo? targetMethod, object?[]? args)
+        {
+            var name = targetMethod!.Name;
+            var next = _accessor.ToList();
+
+            if (name == "set_Item")
+            {
+                _jsRuntime.SetIndex(_id, _accessor, new[] { args![0]! }, args[1]);
+                return null;
+            }
+            if (name.StartsWith("set_"))
+            {
+                next.Add(name.Substring("set_".Length));
+                _jsRuntime.SetValue(_id, next, args![0]);
+                return null;
+            }
+
+            DynamicJS result;
+            if (name == "get_Item")
+            {
+                result = _jsRuntime.GetIndex(_id, _accessor, new[] { args![0]! });
+            }
+            else if (name.StartsWith("get_"))
+            {
+                next.Add(name.Substring("get_".Length));
+                result = new DynamicJS(_jsRuntime, _id, next);
+            }
+            else
+            {
+                next.Add(name);
+                result = _jsRuntime.InvokeMethod(_id, next, args ?? new object[0]);
+                if (targetMethod.ReturnType == typeof(void)) return null;
+            }
+
+            if (targetMethod.ReturnType.IsInterface)
+            {
+                return typeof(DynamicJSProxy<>).MakeGenericType(targetMethod.ReturnType).GetMethod("CreateEx", BindingFlags.NonPublic|BindingFlags.Static)!.Invoke(null, new object[] { result });
+            }
+
+            return _jsRuntime.Convert(targetMethod.ReturnType, result._id, result._accessor);
+        }
+
     }
 }

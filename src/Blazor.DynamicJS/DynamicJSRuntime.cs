@@ -73,7 +73,7 @@ namespace Blazor.DynamicJS
             return new DynamicJS(this, retObjId, new List<string>());
         }
 
-        internal object? GetIndex(long objId, List<string> accessor, object[] indexes)
+        internal DynamicJS GetIndex(long objId, List<string> accessor, object[] indexes)
         {
             var retObjId = _helper.Invoke<long>("getIndex", _guid, objId, accessor, indexes[0]);
             return new DynamicJS(this, retObjId, new List<string>());

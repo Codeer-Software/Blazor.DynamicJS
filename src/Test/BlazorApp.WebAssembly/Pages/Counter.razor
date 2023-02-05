@@ -31,6 +31,7 @@
         await TestCore1();
         await TestCore2();
         await TestCore3();
+        await TestCore4();
 
         w.Stop();
         currentCount = (int)w.ElapsedMilliseconds;
@@ -130,6 +131,30 @@
         z.innerText = "zzz";
 
 
+    }
+
+    private async Task TestCore4()
+    {
+        using var js = await JS.CreateDymaicRuntimeAsync();
+        var window = js.GetWindow();
+
+        window.PinTest = new
+        {
+            a = 3,
+            b = "",
+            d = new[] { 0,10,20,30}
+        };
+        window.PinTest.c = (Func<int, string>)(e => e.ToString());
+
+        var pin = ((IJSSyntax)window.PinTest).Pin<IPinTest>();
+
+        pin.a = 100;
+        pin.b = "xxx";
+        var a = pin.a;
+        var b = pin.b;
+        var c = pin.c(100);
+        pin.d[2] = 100;
+        var d = pin.d[2];
     }
 
     private int currentCount = 0;
