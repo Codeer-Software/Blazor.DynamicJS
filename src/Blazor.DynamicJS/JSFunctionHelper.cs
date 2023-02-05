@@ -16,8 +16,9 @@ namespace Blazor.DynamicJS
 
             var type = GetJSFunctionType(method!);
             var generics = GetGenerics(method!);
+
             type = generics.Any() ? type.MakeGenericType(generics) : type;
-            func = type.GetConstructors().First().Invoke(new[] { js, obj });
+            func = ReflectionHelper.Create(type, js, obj);
 
             dynamicIndexes = method!.GetParameters().Select((e, i) => new { e.ParameterType, i }).Where(e => e.ParameterType == typeof(object)).Select(e => e.i).ToArray();
             return true;

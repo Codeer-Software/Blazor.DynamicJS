@@ -124,7 +124,9 @@ namespace Blazor.DynamicJS
 
             if (targetMethod.ReturnType.IsInterface)
             {
-                return typeof(DynamicJSProxy<>).MakeGenericType(targetMethod.ReturnType).GetMethod("CreateEx", BindingFlags.NonPublic|BindingFlags.Static)!.Invoke(null, new object[] { result });
+                return ReflectionHelper.InvokeGenericStaticMethod(
+                    typeof(DynamicJSProxy<>), new[] { targetMethod.ReturnType },
+                    "CreateEx", new object[] { result });
             }
 
             return _jsRuntime.Convert(targetMethod.ReturnType, result._id, result._accessor);

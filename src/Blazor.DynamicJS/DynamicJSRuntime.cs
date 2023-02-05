@@ -62,11 +62,10 @@ namespace Blazor.DynamicJS
         }
 
         internal object? Convert(Type type, long objId, List<string> accessor)
-        {
-            var converter = typeof(Converter<>).MakeGenericType(type);
-            return converter.GetMethod("Convert")!.Invoke(null, new object[] { _helper, objId, accessor });
-        }
-        
+            => ReflectionHelper.InvokeGenericStaticMethod(
+                typeof(Converter<>), new[] { type },
+                "Convert", new object[] { _helper, objId, accessor });
+
         internal DynamicJS InvokeFunctionObject(long objId, List<string> accessor, object?[] args)
         {
             var retObjId = _helper.Invoke<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
@@ -134,23 +133,24 @@ namespace Blazor.DynamicJS
 
             if (!JSFunctionHelper.Create(this, obj, out var function, out var dynamicIndexes)) return null;
 
-            var wrapper = typeof(DotNetObjectReferenceWrapper<>).MakeGenericType(function.GetType());
-            var objRef = (IDisposable)wrapper.GetMethod("Create")!.Invoke(null, new object[] { function })!;
+            var objRef = (IDisposable)ReflectionHelper.InvokeGenericStaticMethod(
+                typeof(DotNetObjectReferenceWrapper<>), new[] { function.GetType() },
+                "Create", new object[] { function })!;
 
             _disposables.Add(objRef);
             var objId = _helper.Invoke<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
             return new DynamicJS(this, objId, new List<string>());
         }
 
-        public class DotNetObjectReferenceWrapper<T> where T : class
+        class DotNetObjectReferenceWrapper<T> where T : class
         {
-            public static DotNetObjectReference<T> Create(T obj)
+            internal static DotNetObjectReference<T> Create(T obj)
                 => DotNetObjectReference.Create(obj);
         }
 
-        public class Converter<T>
+        class Converter<T>
         {
-            public static T Convert(IJSInProcessObjectReference inProcess, long objId, List<string> accessor)
+            internal static T Convert(IJSInProcessObjectReference inProcess, long objId, List<string> accessor)
                 => inProcess.Invoke<T>("getObject", objId, accessor);
         }
     }
