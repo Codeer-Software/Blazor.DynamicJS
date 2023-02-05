@@ -155,7 +155,7 @@
         };
         window.PinTest.c = (Func<int, string>)(e => e.ToString());
 
-        var pin = ((IJSSyntax)window.PinTest).Pin<IPinTest>();
+        IPinTest pin = window.PinTest;
 
         pin.a = 100;
         pin.b = "xxx";

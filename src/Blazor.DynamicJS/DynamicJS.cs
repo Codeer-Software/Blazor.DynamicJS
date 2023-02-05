@@ -47,6 +47,14 @@ namespace Blazor.DynamicJS
         //cast
         public override bool TryConvert(ConvertBinder binder, out object? result)
         {
+            if (binder.Type.IsInterface)
+            {
+                result = ReflectionHelper.InvokeGenericStaticMethod(
+                    typeof(DynamicJSProxy<>), new[] { binder.Type },
+                    "CreateEx", new object[] { this });
+                return true;
+            }
+
             result = _jsRuntime.Convert(binder.Type, _id, _accessor);
             return true;
         }
@@ -75,20 +83,11 @@ namespace Blazor.DynamicJS
         public dynamic New(params object?[] args)
             => _jsRuntime.New(_accessor, args);
 
-        public TInterface New<TInterface>(params object?[] args)
-            => _jsRuntime.New(_accessor, args).Pin<TInterface>();
-
         public async Task<dynamic> NewAsync(params object?[] args)
             => await _jsRuntime.NewAsync(_accessor, args);
 
-        public async Task<TInterface> NewAsync<TInterface>(params object?[] args)
-            => (await _jsRuntime.NewAsync(_accessor, args)).Pin<TInterface>();
-
         public async Task<dynamic> InvokeAsync(params object?[] args)
             => await _jsRuntime.InvokeAsync(_id, _accessor, args);
-
-        public TInterface Pin<TInterface>()
-            => DynamicJSProxy<TInterface>.CreateEx(this);
 
         public async Task SetValueAsync(object? value)
             => await _jsRuntime.SetValueAsync(_id, _accessor, value);
