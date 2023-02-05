@@ -6,7 +6,6 @@ export function invokeMethod(cspRefeenceId, objId, names, theArgs) {
     resolveArgs(theArgs);
 
     if (names.length == 0 && objId != 0) {
-        //functionが入っている場合
         const obj = objects[objId].obj(...theArgs);
         return setObject(cspRefeenceId, obj, cspRefeenceId);
     }
