@@ -72,25 +72,35 @@ namespace Blazor.DynamicJS
             return true;
         }
 
-        public dynamic New(params object?[] args) => _jsRuntime.New(_accessor, args);
+        public dynamic New(params object?[] args)
+            => _jsRuntime.New(_accessor, args);
 
-        public async Task<dynamic> NewAsync(params object?[] args) => await _jsRuntime.NewAsync(_accessor, args);
+        public async Task<dynamic> NewAsync(params object?[] args) 
+            => await _jsRuntime.NewAsync(_accessor, args);
 
-        public async Task<dynamic> InvokeAsync(params object?[] args) => await _jsRuntime.InvokeAsync(_id, _accessor, args);
+        public async Task<dynamic> InvokeAsync(params object?[] args)
+            => await _jsRuntime.InvokeAsync(_id, _accessor, args);
 
-        public TInterface Pin<TInterface>() => DynamicJSProxy<TInterface>.CreateEx(this);
+        public TInterface Pin<TInterface>()
+            => DynamicJSProxy<TInterface>.CreateEx(this);
 
-        public async Task SetValueAsync(object? value) => await _jsRuntime.SetValueAsync(_id, _accessor, value);
-        public async Task SetIndexValueAsync(object idnex, object? value) => await _jsRuntime.SetIndexAsync(_id, _accessor, new[] { idnex }, value);
-        public async Task<T> GetValueAsync<T>() => (T)(object)(await _jsRuntime.ConvertAsync(typeof(T), _id, _accessor))!;
+        public async Task SetValueAsync(object? value)
+            => await _jsRuntime.SetValueAsync(_id, _accessor, value);
+
+        public async Task SetIndexValueAsync(object idnex, object? value)
+            => await _jsRuntime.SetIndexAsync(_id, _accessor, new[] { idnex }, value);
+
+        public async Task<T> GetValueAsync<T>()
+            => (T)(object)(await _jsRuntime.ConvertAsync(typeof(T), _id, _accessor))!;
+
         public async Task<T> GetIndexValueAsync<T>(object idnex)
         {
             var x = await _jsRuntime.GetIndexAsync(_id, _accessor, new[] { idnex });
             return (T)(object)(await _jsRuntime.ConvertAsync(typeof(T), x._id, x._accessor))!;
         }
 
-        internal JSReferenceJsonableData ToJsonable()
-            => new JSReferenceJsonableData { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
+        internal DynamicJSJsonableData ToJsonable()
+            => new DynamicJSJsonableData { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
 
         internal object? InvokeProxyMethod(MethodInfo? targetMethod, object?[]? args)
         {
