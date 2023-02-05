@@ -14,6 +14,6 @@
         public async Task SetIndexValueAsync(object index, object? value) => await _core.SetIndexValueAsync(index, value);
         public async Task<T> GetValueAsync<T>() => await _core.GetValueAsync<T>();
         public async Task<T> GetIndexValueAsync<T>(object index) => await _core.GetIndexValueAsync<T>(index);
-        public TInterface Pin<TInterface>()=> _core.Pin<TInterface>();
+        public TInterface AssignInterface<TInterface>()=> _core.AssignInterface<TInterface>();
     }
 }

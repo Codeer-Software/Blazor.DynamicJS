@@ -155,7 +155,7 @@
         };
         window.PinTest.c = (Func<int, string>)(e => e.ToString());
 
-        var pin = new JSSyntax(window.PinTest).Pin<IPinTest>();
+        var pin = new JSSyntax(window.PinTest).AssignInterface<IPinTest>();
        
         pin.a = 100;
         pin.b = "xxx";
@@ -174,7 +174,7 @@
         await pin.d.set_ItemAsync(3, 88);
         var da = await pin.d.get_ItemAsync(3);
 
-        var targets = new JSSyntax(window.TestTargets).Pin<ITestTargets>();
+        var targets = new JSSyntax(window.TestTargets).AssignInterface<ITestTargets>();
         var rect = targets.Rectangle(1, 2);
         var h = rect.Height;
         var sum = targets.Sum(1, 2, 3, 4, 5);

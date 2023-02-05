@@ -42,7 +42,7 @@ namespace Blazor.DynamicJS
         {
             if (path.StartsWith(".")) throw new ArgumentException("Please specify with absolute path");
             DynamicJS mod = await ImportAsync(path);
-            return mod.Pin<TInterface>();
+            return mod.AssignInterface<TInterface>();
         }
 
         public dynamic ToJS(object obj)
@@ -57,7 +57,7 @@ namespace Blazor.DynamicJS
         public TInterface ToJS<TInterface>(object obj)
         {
             DynamicJS js = ToJS(obj);
-            return js.Pin<TInterface>();
+            return js.AssignInterface<TInterface>();
         }
 
         public async Task<dynamic> ToJSAsync(object obj)
@@ -72,7 +72,7 @@ namespace Blazor.DynamicJS
         public async Task<TInterface> ToJSAsync<TInterface>(object obj)
         {
             DynamicJS js = await ToJSAsync(obj);
-            return js.Pin<TInterface>();
+            return js.AssignInterface<TInterface>();
         }
 
         internal void SetValue(long objId, List<string> accessor, object? value)

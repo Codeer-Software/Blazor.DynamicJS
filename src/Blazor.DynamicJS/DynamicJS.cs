@@ -74,20 +74,20 @@ namespace Blazor.DynamicJS
             return true;
         }
 
-        internal TInterface Pin<TInterface>()
+        internal TInterface AssignInterface<TInterface>()
             => DynamicJSProxy<TInterface>.CreateEx(this);
 
         internal dynamic New(params object?[] args)
             => _jsRuntime.New(_accessor, args);
 
         internal TInterface New<TInterface>(params object?[] args)
-            => _jsRuntime.New(_accessor, args).Pin<TInterface>();
+            => _jsRuntime.New(_accessor, args).AssignInterface<TInterface>();
 
         internal async Task<dynamic> NewAsync(params object?[] args)
             => await _jsRuntime.NewAsync(_accessor, args);
 
         internal async Task<TInterface> NewAsync<TInterface>(params object?[] args)
-            => (await _jsRuntime.NewAsync(_accessor, args)).Pin<TInterface>();
+            => (await _jsRuntime.NewAsync(_accessor, args)).AssignInterface<TInterface>();
 
         internal async Task<dynamic> InvokeAsync(params object?[] args)
             => await _jsRuntime.InvokeAsync(_id, _accessor, args);
