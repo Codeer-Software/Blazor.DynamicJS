@@ -33,7 +33,7 @@
 
     ElementReference _elementReferenceSample;
 
-    DynamicJSRuntime _js;
+    DynamicJSRuntime? _js;
 
     protected override async Task OnInitializedAsync()
     {
@@ -41,15 +41,13 @@
         _js = await JS.CreateDymaicRuntimeAsync();
     }
 
-    public async ValueTask DisposeAsync()
-        => await _js.DisposeAsync();
-
-
+    public ValueTask DisposeAsync()
+        => _js?.DisposeAsync() ?? ValueTask.CompletedTask;
 
 
     void DomSample()
     {
-        dynamic window = _js.GetWindow();
+        dynamic window = _js!.GetWindow();
 
         dynamic button = window.document.createElement("button");
         button.innerText = "new button";
@@ -66,7 +64,7 @@
 
     void GlobalSample()
     {
-        dynamic window = _js.GetWindow();
+        dynamic window = _js!.GetWindow();
 
         //call function
         int sum = window.TestTargets.sum(1, 2, 3, 4);
@@ -95,8 +93,7 @@
 
     void ElementReferenceSample()
     {
-        var jsElement = _js.ToJS(_elementReferenceSample);
+        var jsElement = _js!.ToJS(_elementReferenceSample);
         jsElement.innerText = "test";
     }
-
 }

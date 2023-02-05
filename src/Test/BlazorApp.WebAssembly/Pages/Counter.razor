@@ -156,7 +156,7 @@
         window.PinTest.c = (Func<int, string>)(e => e.ToString());
 
         var pin = new JSSyntax(window.PinTest).AssignInterface<IPinTest>();
-       
+
         pin.a = 100;
         pin.b = "xxx";
         var a = pin.a;
@@ -180,6 +180,9 @@
         var sum = targets.Sum(1, 2, 3, 4, 5);
         targets.Data = 300;
         var data = targets.Data;
+
+
+        window.XXX = targets;
     }
 
     private int currentCount = 0;

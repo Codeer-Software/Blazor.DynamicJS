@@ -167,6 +167,8 @@ namespace Blazor.DynamicJS
 
         object? AdjustObject(object? src)
         {
+            if (src is IDynamicJSOwner dynamicJSOwner) return dynamicJSOwner.DynamicJS!.ToJsonable();
+
             if (src is DynamicJS dynamicJs) return dynamicJs.ToJsonable();
 
             var function = ToJSFunction(src);
