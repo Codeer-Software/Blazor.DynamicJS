@@ -128,12 +128,14 @@ namespace Blazor.DynamicJS
                 name = name.Substring(0, name.Length - "Async".Length);
             }
 
+            var isNew = targetMethod.GetCustomAttribute<NewSyntaxAttribute>(false) != null;
+
             return isAsync ?
-                InvokeProxyMethodAsync(args, name, returnType) :
-                InvokeProxyMethod(args, name, returnType);
+                InvokeProxyMethodAsync(args, name, returnType, isNew) :
+                InvokeProxyMethod(args, name, returnType, isNew);
         }
 
-        object? InvokeProxyMethod(object?[]? args, string name, Type returnType)
+        object? InvokeProxyMethod(object?[]? args, string name, Type returnType, bool isNew)
         {
             var next = _accessor.ToList();
             if (name == "set_Item")
@@ -161,8 +163,15 @@ namespace Blazor.DynamicJS
             else
             {
                 next.Add(name);
-                result = _jsRuntime.InvokeMethod(_id, next, args ?? new object[0]);
-                if (returnType == typeof(void)) return null;
+                if (isNew)
+                {
+                    result = _jsRuntime.New(next, args ?? new object[0]);
+                }
+                else
+                {
+                    result = _jsRuntime.InvokeMethod(_id, next, args ?? new object[0]);
+                    if (returnType == typeof(void)) return null;
+                }
             }
 
             if (returnType.IsInterface)
@@ -175,7 +184,7 @@ namespace Blazor.DynamicJS
             return _jsRuntime.Convert(returnType, result._id, result._accessor);
         }
 
-        object? InvokeProxyMethodAsync(object?[]? args, string name, Type returnType)
+        object? InvokeProxyMethodAsync(object?[]? args, string name, Type returnType, bool isNew)
         {
             var next = _accessor.ToList();
             if (name == "set_Item")
@@ -201,12 +210,19 @@ namespace Blazor.DynamicJS
             else
             {
                 next.Add(name);
-                result = _jsRuntime.InvokeAsync(_id, next, args ?? new object[0]);
-                if (returnType == typeof(void))
+                if (isNew)
                 {
-                    return ReflectionHelper.InvokeGenericStaticMethod(
-                   typeof(AsyncHelper<>), new[] { typeof(int) },
-                   "WaitAsync", new object[] { result });
+                    result = _jsRuntime.NewAsync(next, args ?? new object[0]);
+                }
+                else
+                {
+                    result = _jsRuntime.InvokeAsync(_id, next, args ?? new object[0]);
+                    if (returnType == typeof(void))
+                    {
+                        return ReflectionHelper.InvokeGenericStaticMethod(
+                       typeof(AsyncHelper<>), new[] { typeof(int) },
+                       "WaitAsync", new object[] { result });
+                    }
                 }
             }
             if (returnType.IsInterface)

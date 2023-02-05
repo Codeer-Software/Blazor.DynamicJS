@@ -1,4 +1,6 @@
-﻿namespace BlazorApp.WebAssembly
+﻿using Blazor.DynamicJS;
+
+namespace BlazorApp.WebAssembly
 {
     public interface IArray
     {
@@ -20,5 +22,17 @@
         Task set_aAsync(int _);
         Task<int> get_aAsync();
         Task<string> cAsync(int _);
+    }
+
+    public interface IRectangle
+    { 
+        int height { get; set; }
+        int width { get; set; }
+    }
+
+    public interface ITestTargets
+    {
+        [NewSyntax]
+        IRectangle Rectangle(int h, int w);
     }
 }

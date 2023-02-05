@@ -173,6 +173,10 @@
 
         await pin.d.set_ItemAsync(3, 88);
         var da = await pin.d.get_ItemAsync(3);
+
+        ITestTargets targets = window.TestTargets;
+        var rect = targets.Rectangle(1, 2);
+        var h = rect.height;
     }
 
     private int currentCount = 0;
