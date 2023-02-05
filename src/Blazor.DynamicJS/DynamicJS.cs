@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Blazor.DynamicJS
 {
-    internal class DynamicJS : DynamicObject, IJSSyntax
+    internal class DynamicJS : DynamicObject
     {
         DynamicJSRuntime _jsRuntime;
         long _id;
@@ -49,14 +49,6 @@ namespace Blazor.DynamicJS
         //cast
         public override bool TryConvert(ConvertBinder binder, out object? result)
         {
-            if (binder.Type.IsInterface)
-            {
-                result = ReflectionHelper.InvokeGenericStaticMethod(
-                    typeof(DynamicJSProxy<>), new[] { binder.Type },
-                    "CreateEx", new object[] { this });
-                return true;
-            }
-
             result = _jsRuntime.Convert(binder.Type, _id, _accessor);
             return true;
         }
@@ -82,25 +74,34 @@ namespace Blazor.DynamicJS
             return true;
         }
 
-        public dynamic New(params object?[] args)
+        internal TInterface Pin<TInterface>()
+            => DynamicJSProxy<TInterface>.CreateEx(this);
+
+        internal dynamic New(params object?[] args)
             => _jsRuntime.New(_accessor, args);
 
-        public async Task<dynamic> NewAsync(params object?[] args)
+        internal TInterface New<TInterface>(params object?[] args)
+            => _jsRuntime.New(_accessor, args).Pin<TInterface>();
+
+        internal async Task<dynamic> NewAsync(params object?[] args)
             => await _jsRuntime.NewAsync(_accessor, args);
 
-        public async Task<dynamic> InvokeAsync(params object?[] args)
+        internal async Task<TInterface> NewAsync<TInterface>(params object?[] args)
+            => (await _jsRuntime.NewAsync(_accessor, args)).Pin<TInterface>();
+
+        internal async Task<dynamic> InvokeAsync(params object?[] args)
             => await _jsRuntime.InvokeAsync(_id, _accessor, args);
 
-        public async Task SetValueAsync(object? value)
+        internal async Task SetValueAsync(object? value)
             => await _jsRuntime.SetValueAsync(_id, _accessor, value);
 
-        public async Task SetIndexValueAsync(object idnex, object? value)
+        internal async Task SetIndexValueAsync(object idnex, object? value)
             => await _jsRuntime.SetIndexAsync(_id, _accessor, new[] { idnex }, value);
 
-        public async Task<T> GetValueAsync<T>()
+        internal async Task<T> GetValueAsync<T>()
             => (T)(object)(await _jsRuntime.ConvertAsync(typeof(T), _id, _accessor))!;
 
-        public async Task<T> GetIndexValueAsync<T>(object idnex)
+        internal async Task<T> GetIndexValueAsync<T>(object idnex)
         {
             var x = await _jsRuntime.GetIndexAsync(_id, _accessor, new[] { idnex });
             return (T)(object)(await _jsRuntime.ConvertAsync(typeof(T), x._id, x._accessor))!;

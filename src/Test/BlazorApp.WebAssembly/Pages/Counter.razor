@@ -49,11 +49,11 @@
         int[] ret2 = window.func2(1, 2, 3);
         int sum = window.sum(1, 2, 3, 4);
 
-        int[] ret3 = await ((IJSSyntax)window.func2).InvokeAsync(1, 2, 3);
+        int[] ret3 = await new JSSyntax(window.func2).InvokeAsync(1, 2, 3);
 
         window.data = 100;
-        await ((IJSSyntax)window.data).SetValueAsync(200);
-        var ret4 = await ((IJSSyntax)window.data).GetValueAsync<int>();
+        await new JSSyntax(window.data).SetValueAsync(200);
+        var ret4 = await new JSSyntax(window.data).GetValueAsync<int>();
 
 
         window.dataX = new { a = 100, b = 200 };
@@ -65,8 +65,8 @@
             window.console.log(window.arrayData[i]);
         }
 
-        await ((IJSSyntax)window.arrayData).SetIndexValueAsync(2, 1000);
-        var ret5 =  await ((IJSSyntax)window.arrayData).GetIndexValueAsync<int>(2);
+        await new JSSyntax(window.arrayData).SetIndexValueAsync(2, 1000);
+        var ret5 =  await new JSSyntax(window.arrayData).GetIndexValueAsync<int>(2);
 
 
 
@@ -75,8 +75,8 @@
         int a = x.a;
 
         //new
-        var rect = ((IJSSyntax)window.TestTargets.Rectangle).New(1, 2);
-        var rect2 = await ((IJSSyntax)window.TestTargets.Rectangle).NewAsync(1, 2);
+        var rect = new JSSyntax(window.TestTargets.Rectangle).New(1, 2);
+        var rect2 = await new JSSyntax(window.TestTargets.Rectangle).NewAsync(1, 2);
         int height = rect.height;
         int height2 = rect.height;
 
@@ -130,7 +130,7 @@
         await Task.CompletedTask;
 
         using var js = await JS.CreateDymaicRuntimeAsync();
-        var mod = await js.ImportAsync("./exp.js");
+        var mod = await js.ImportAsync("/exp.js");
 
         int x = mod.add(1, 2);
 
@@ -155,8 +155,8 @@
         };
         window.PinTest.c = (Func<int, string>)(e => e.ToString());
 
-        IPinTest pin = window.PinTest;
-
+        var pin = new JSSyntax(window.PinTest).Pin<IPinTest>();
+       
         pin.a = 100;
         pin.b = "xxx";
         var a = pin.a;
@@ -174,7 +174,7 @@
         await pin.d.set_ItemAsync(3, 88);
         var da = await pin.d.get_ItemAsync(3);
 
-        ITestTargets targets = window.TestTargets;
+        var targets = new JSSyntax(window.TestTargets).Pin<ITestTargets>();
         var rect = targets.Rectangle(1, 2);
         var h = rect.Height;
         var sum = targets.Sum(1, 2, 3, 4, 5);

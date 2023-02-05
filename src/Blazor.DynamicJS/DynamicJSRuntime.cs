@@ -33,8 +33,16 @@ namespace Blazor.DynamicJS
 
         public async Task<dynamic> ImportAsync(string path)
         {
+            if (path.StartsWith(".")) throw new ArgumentException("Please specify with absolute path");
             var objId = await _helper.InvokeAsync<long>("importModule", _guid, path);
             return new DynamicJS(this, objId, new List<string>());
+        }
+
+        public async Task<TInterface> ImportAsync<TInterface>(string path)
+        {
+            if (path.StartsWith(".")) throw new ArgumentException("Please specify with absolute path");
+            DynamicJS mod = await ImportAsync(path);
+            return mod.Pin<TInterface>();
         }
 
         public dynamic ToJS(object obj)
@@ -46,6 +54,12 @@ namespace Blazor.DynamicJS
             return new DynamicJS(this, objId, new List<string>());
         }
 
+        public TInterface ToJS<TInterface>(object obj)
+        {
+            DynamicJS js = ToJS(obj);
+            return js.Pin<TInterface>();
+        }
+
         public async Task<dynamic> ToJSAsync(object obj)
         {
             var function = ToJSFunction(obj);
@@ -53,6 +67,12 @@ namespace Blazor.DynamicJS
 
             var objId = await _helper.InvokeAsync<long>("setObject", _guid, obj);
             return new DynamicJS(this, objId, new List<string>());
+        }
+
+        public async Task<TInterface> ToJSAsync<TInterface>(object obj)
+        {
+            DynamicJS js = await ToJSAsync(obj);
+            return js.Pin<TInterface>();
         }
 
         internal void SetValue(long objId, List<string> accessor, object? value)
