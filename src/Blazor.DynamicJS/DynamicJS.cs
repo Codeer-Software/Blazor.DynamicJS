@@ -95,8 +95,32 @@ namespace Blazor.DynamicJS
         internal object? InvokeProxyMethod(MethodInfo? targetMethod, object?[]? args)
         {
             var name = targetMethod!.Name;
-            var next = _accessor.ToList();
 
+            bool isAsync = false;
+            var returnType = targetMethod.ReturnType;
+            if (returnType == typeof(Task))
+            {
+                isAsync = true;
+                returnType = typeof(void);
+            }
+            else if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                isAsync = true;
+                returnType = returnType.GetGenericArguments()[0];
+            }
+            if (isAsync && name.EndsWith("Async"))
+            {
+                name = name.Substring(0, name.Length - "Async".Length);
+            }
+
+            return isAsync ?
+                InvokeProxyMethodAsync(args, name, returnType) :
+                InvokeProxyMethod(args, name, returnType);
+        }
+
+        object? InvokeProxyMethod(object?[]? args, string name, Type returnType)
+        {
+            var next = _accessor.ToList();
             if (name == "set_Item")
             {
                 _jsRuntime.SetIndex(_id, _accessor, new[] { args![0]! }, args[1]);
@@ -123,18 +147,75 @@ namespace Blazor.DynamicJS
             {
                 next.Add(name);
                 result = _jsRuntime.InvokeMethod(_id, next, args ?? new object[0]);
-                if (targetMethod.ReturnType == typeof(void)) return null;
+                if (returnType == typeof(void)) return null;
             }
 
-            if (targetMethod.ReturnType.IsInterface)
+            if (returnType.IsInterface)
             {
                 return ReflectionHelper.InvokeGenericStaticMethod(
-                    typeof(DynamicJSProxy<>), new[] { targetMethod.ReturnType },
+                    typeof(DynamicJSProxy<>), new[] { returnType },
                     "CreateEx", new object[] { result });
             }
 
-            return _jsRuntime.Convert(targetMethod.ReturnType, result._id, result._accessor);
+            return _jsRuntime.Convert(returnType, result._id, result._accessor);
         }
 
+        object? InvokeProxyMethodAsync(object?[]? args, string name, Type returnType)
+        {
+            var next = _accessor.ToList();
+            if (name == "set_Item")
+            {
+                return _jsRuntime.SetIndexAsync(_id, _accessor, new[] { args![0]! }, args[1]);
+            }
+            if (name.StartsWith("set_"))
+            {
+                next.Add(name.Substring("set_".Length));
+                return _jsRuntime.SetValueAsync(_id, next, args![0]);
+            }
+
+            Task<DynamicJS> result;
+            if (name == "get_Item")
+            {
+                result = _jsRuntime.GetIndexAsync(_id, _accessor, new[] { args![0]! });
+            }
+            else if (name.StartsWith("get_"))
+            {
+                next.Add(name.Substring("get_".Length));
+                result = Task.Factory.StartNew(()=> new DynamicJS(_jsRuntime, _id, next));
+            }
+            else
+            {
+                next.Add(name);
+                result = _jsRuntime.InvokeAsync(_id, next, args ?? new object[0]);
+                if (returnType == typeof(void))
+                {
+                    return ReflectionHelper.InvokeGenericStaticMethod(
+                   typeof(AsyncHelper<>), new[] { typeof(int) },
+                   "WaitAsync", new object[] { result });
+                }
+            }
+            if (returnType.IsInterface)
+            {
+                return ReflectionHelper.InvokeGenericStaticMethod(
+                    typeof(DynamicJSProxy<>), new[] { returnType },
+                    "CreateExAsync", new object[] { result });
+            }
+
+            return ReflectionHelper.InvokeGenericStaticMethod(
+                   typeof(AsyncHelper<>), new[] { returnType },
+                   "ConvertAsync", new object[] { _jsRuntime, result });
+        }
+
+        class AsyncHelper<T>
+        {
+            internal static async Task WaitAsync(Task<DynamicJS> tsk) => await tsk;
+
+            internal static async Task<T> ConvertAsync(DynamicJSRuntime jsRuntime, Task<DynamicJS> tsk)
+            {
+                var js = (await tsk).ToJsonable();
+                var obj = await jsRuntime.ConvertAsync(typeof(T), js.BlazorDynamicJavaScriptObjectId, js.BlazorDynamicJavaScriptUnresolvedNames);
+                return (T)obj!;
+            }
+        }
     }
 }

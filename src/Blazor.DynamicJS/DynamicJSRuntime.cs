@@ -58,7 +58,7 @@ namespace Blazor.DynamicJS
             return new DynamicJS(this, retObjId, new List<string>());
         }
 
-        internal async Task<dynamic> InvokeAsync(long objId, List<string> accessor, object?[] args)
+        internal async Task<DynamicJS> InvokeAsync(long objId, List<string> accessor, object?[] args)
         {
             var retObjId = await _helper.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
             return new DynamicJS(this, retObjId, new List<string>());
@@ -108,7 +108,7 @@ namespace Blazor.DynamicJS
             return new DynamicJS(this, objId, new List<string>());
         }
 
-        internal async Task<dynamic> NewAsync(List<string> accessor, object?[] args)
+        internal async Task<DynamicJS> NewAsync(List<string> accessor, object?[] args)
         {
             var objId = await _helper.InvokeAsync<long>("createObject", _guid, accessor, AdjustArguments(args!));
             return new DynamicJS(this, objId, new List<string>());
