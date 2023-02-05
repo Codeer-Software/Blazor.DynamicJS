@@ -30,7 +30,7 @@ namespace Blazor.DynamicJS
             var next = _accessor.ToList();
             next.Add(binder.Name);
 
-            if (value is DynamicJS r) value = r.Marshal();
+            if (value is DynamicJS r) value = r.ToJsonable();
 
             _jsRuntime.SetValue(_id, next, value);
             return true;
@@ -79,6 +79,6 @@ namespace Blazor.DynamicJS
 
         public async Task<dynamic> InvokeAsync(params object?[] args) => await _jsRuntime.InvokeAsync(_id, _accessor, args);
 
-        internal JSReferenceInfo Marshal() => new JSReferenceInfo { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
+        internal JSReferenceJsonableData ToJsonable() => new JSReferenceJsonableData { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
     }
 }

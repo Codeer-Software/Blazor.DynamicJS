@@ -110,7 +110,7 @@ namespace Blazor.DynamicJS
             if (src is DynamicJS ds)
             {
                 var x = typeof(J).ToString();
-                return (J)(object)ds.Marshal();
+                return (J)(object)ds.ToJsonable();
             }
             return (J)(object)src!;
         }
@@ -120,10 +120,10 @@ namespace Blazor.DynamicJS
 
         object? AdjustObject(object? src)
         {
-            if (src is DynamicJS dynamicJs) return dynamicJs.Marshal();
+            if (src is DynamicJS dynamicJs) return dynamicJs.ToJsonable();
 
             var function = ToJSFunction(src);
-            if (function != null) return ((DynamicJS)function).Marshal();
+            if (function != null) return ((DynamicJS)function).ToJsonable();
 
             return src;
         }

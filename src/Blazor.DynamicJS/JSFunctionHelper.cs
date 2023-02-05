@@ -40,7 +40,7 @@ namespace Blazor.DynamicJS
 
             //return
             var csReturnType = m.ReturnParameter.ParameterType;
-            var jsReturnType = csReturnType == typeof(object) ? typeof(JSReferenceInfo) : csReturnType;
+            var jsReturnType = csReturnType == typeof(object) ? typeof(JSReferenceJsonableData) : csReturnType;
             var list = new List<Type>();
             list.AddRange(csParamTypes);
             list.Add(csReturnType);
