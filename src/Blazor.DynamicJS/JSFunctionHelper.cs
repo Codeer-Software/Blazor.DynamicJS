@@ -62,6 +62,19 @@ namespace Blazor.DynamicJS
                     case 1: return typeof(JSFunctionVoid<,>);
                     case 2: return typeof(JSFunctionVoid<,,,>);
                     case 3: return typeof(JSFunctionVoid<,,,,,>);
+                    case 4: return typeof(JSFunctionVoid<,,,,,,,>);
+                    case 5: return typeof(JSFunctionVoid<,,,,,,,,,>);
+                    case 6: return typeof(JSFunctionVoid<,,,,,,,,,,,>);
+                    case 7: return typeof(JSFunctionVoid<,,,,,,,,,,,,,>);
+                    case 8: return typeof(JSFunctionVoid<,,,,,,,,,,,,,,,>);
+                    case 9: return typeof(JSFunctionVoid<,,,,,,,,,,,,,,,,,>);
+                    case 10: return typeof(JSFunctionVoid<,,,,,,,,,,,,,,,,,,,>);
+                    case 11: return typeof(JSFunctionVoid<,,,,,,,,,,,,,,,,,,,,,>);
+                    case 12: return typeof(JSFunctionVoid<,,,,,,,,,,,,,,,,,,,,,,,>);
+                    case 13: return typeof(JSFunctionVoid<,,,,,,,,,,,,,,,,,,,,,,,,,>);
+                    case 14: return typeof(JSFunctionVoid<,,,,,,,,,,,,,,,,,,,,,,,,,,,>);
+                    case 15: return typeof(JSFunctionVoid<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>);
+                    case 16: return typeof(JSFunctionVoid<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>);
                 }
             }
             else
@@ -72,6 +85,18 @@ namespace Blazor.DynamicJS
                     case 1: return typeof(JSFunction<,,,>);
                     case 2: return typeof(JSFunction<,,,,,>);
                     case 3: return typeof(JSFunction<,,,,,,,>);
+                    case 4: return typeof(JSFunction<,,,,,,,,,>);
+                    case 5: return typeof(JSFunction<,,,,,,,,,,,>);
+                    case 6: return typeof(JSFunction<,,,,,,,,,,,,,>);
+                    case 7: return typeof(JSFunction<,,,,,,,,,,,,,,,>);
+                    case 8: return typeof(JSFunction<,,,,,,,,,,,,,,,,,>);
+                    case 9: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,>);
+                    case 10: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,,,>);
+                    case 11: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,,,,,>);
+                    case 12: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,,,,,,,>);
+                    case 13: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,,,,,,,,,>);
+                    case 14: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>);
+                    case 15: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>);
                 }
             }
             throw new NotImplementedException();
