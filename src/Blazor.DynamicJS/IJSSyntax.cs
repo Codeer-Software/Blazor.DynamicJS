@@ -3,7 +3,9 @@
     public interface IJSSyntax
     {
         dynamic New(params object?[] args);
+        TInterface New<TInterface>(params object?[] args);
         Task<dynamic> NewAsync(params object?[] args);
+        Task<TInterface> NewAsync<TInterface>(params object?[] args);
         Task<dynamic> InvokeAsync(params object?[] args);
         Task SetValueAsync(object? value);
         Task SetIndexValueAsync(object idnex, object? value);

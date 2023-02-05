@@ -75,8 +75,14 @@ namespace Blazor.DynamicJS
         public dynamic New(params object?[] args)
             => _jsRuntime.New(_accessor, args);
 
-        public async Task<dynamic> NewAsync(params object?[] args) 
+        public TInterface New<TInterface>(params object?[] args)
+            => _jsRuntime.New(_accessor, args).Pin<TInterface>();
+
+        public async Task<dynamic> NewAsync(params object?[] args)
             => await _jsRuntime.NewAsync(_accessor, args);
+
+        public async Task<TInterface> NewAsync<TInterface>(params object?[] args)
+            => (await _jsRuntime.NewAsync(_accessor, args)).Pin<TInterface>();
 
         public async Task<dynamic> InvokeAsync(params object?[] args)
             => await _jsRuntime.InvokeAsync(_id, _accessor, args);
