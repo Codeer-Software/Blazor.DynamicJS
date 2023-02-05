@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Dynamic;
+using System.Linq;
 using System.Reflection;
 
 namespace Blazor.DynamicJS
@@ -128,7 +130,18 @@ namespace Blazor.DynamicJS
                 name = name.Substring(0, name.Length - "Async".Length);
             }
 
-            var isNew = targetMethod.GetCustomAttribute<NewSyntaxAttribute>(false) != null;
+            var lastArg = targetMethod.GetParameters().LastOrDefault();
+            if (lastArg != null)
+            {
+                if (lastArg.GetCustomAttribute<System.ParamArrayAttribute>(false) != null)
+                {
+                    var lastArray = ((IEnumerable)args!.Last()!).Cast<object?>().ToArray();
+                    args = args!.Take(args!.Length - 1).Concat(lastArray).ToArray();
+                }
+            }
+
+
+            var isNew = targetMethod.GetCustomAttribute<ConstructorAttribute>(false) != null;
 
             return isAsync ?
                 InvokeProxyMethodAsync(args, name, returnType, isNew) :

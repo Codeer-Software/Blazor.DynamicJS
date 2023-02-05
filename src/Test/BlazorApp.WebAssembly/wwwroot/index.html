@@ -24,19 +24,22 @@
     <script>
         window.TestTargets =
         {
-            a: {
-                b: 1
-            },
-
             Rectangle: class {
                 constructor(height, width) {
                     this.height = height;
                     this.width = width;
                 }
             },
-            call: function (a1, a2, a3) {
-                console.log("call", a1, a2, a3);
-            }
+
+            sum: function (...theArgs) {
+                let total = 0;
+                for (const arg of theArgs) {
+                    total += arg;
+                }
+                return total;
+            },
+
+            data: 100
         }
 
         function func1(a1, a2, a3) {

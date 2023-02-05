@@ -32,7 +32,11 @@ namespace BlazorApp.WebAssembly
 
     public interface ITestTargets
     {
-        [NewSyntax]
+        [Constructor]
         IRectangle Rectangle(int h, int w);
+
+        int sum(params int[] values);
+
+        int data { get; set; }
     }
 }
