@@ -1,4 +1,5 @@
-﻿using System.Dynamic;
+﻿using System;
+using System.Dynamic;
 using System.Reflection;
 
 namespace Blazor.DynamicJS
@@ -79,11 +80,14 @@ namespace Blazor.DynamicJS
 
         public TInterface Pin<TInterface>() => DynamicJSProxy<TInterface>.CreateEx(this);
 
-        //SetValueAsync
-        //GetValueAsync
-        //SetIndexValueAsync
-        //GetIndexValueAsync
-
+        public async Task SetValueAsync(object? value) => await _jsRuntime.SetValueAsync(_id, _accessor, value);
+        public async Task SetIndexValueAsync(object idnex, object? value) => await _jsRuntime.SetIndexAsync(_id, _accessor, new[] { idnex }, value);
+        public async Task<T> GetValueAsync<T>() => (T)(object)(await _jsRuntime.ConvertAsync(typeof(T), _id, _accessor))!;
+        public async Task<T> GetIndexValueAsync<T>(object idnex)
+        {
+            var x = await _jsRuntime.GetIndexAsync(_id, _accessor, new[] { idnex });
+            return (T)(object)(await _jsRuntime.ConvertAsync(typeof(T), x._id, x._accessor))!;
+        }
 
         internal JSReferenceJsonableData ToJsonable()
             => new JSReferenceJsonableData { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };

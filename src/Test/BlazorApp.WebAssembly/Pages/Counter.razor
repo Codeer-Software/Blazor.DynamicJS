@@ -10,7 +10,7 @@
 <p role="status">Time: @currentCount</p>
 
 
-<button class="btn btn-primary" @onclick="Test">Click me</button>
+<button class="btn btn-primary" @onclick="SyncTest">Click me</button>
 
 <label id="_test">test</label>
 <div @ref="divElement">Text during render</div>
@@ -37,6 +37,13 @@
         currentCount = (int)w.ElapsedMilliseconds;
     }
 
+    void SyncTest()
+    {
+        var tsk = JS.CreateDymaicRuntimeAsync();
+        tsk.Wait();
+
+    }
+
     private async Task TestCore1()
     {
         await Task.CompletedTask;
@@ -52,6 +59,10 @@
         int[] ret3 = await ((IJSSyntax)window.func2).InvokeAsync(1, 2, 3);
 
         window.data = 100;
+        await ((IJSSyntax)window.data).SetValueAsync(200);
+        var ret4 = await ((IJSSyntax)window.data).GetValueAsync<int>();
+
+
         window.dataX = new { a = 100, b = 200 };
 
         window.arrayData = new[] { 1, 2, 3 };
@@ -60,6 +71,11 @@
         {
             window.console.log(window.arrayData[i]);
         }
+        
+        await ((IJSSyntax)window.arrayData).SetIndexValueAsync(2, 1000);
+        var ret5 =  await ((IJSSyntax)window.arrayData).GetIndexValueAsync<int>(2);
+
+
 
         var x = window.dataX;
         x.a = x.b;
