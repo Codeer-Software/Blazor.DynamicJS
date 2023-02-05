@@ -174,7 +174,7 @@
         await pin.d.set_ItemAsync(3, 88);
         var da = await pin.d.get_ItemAsync(3);
 
-        var targets = (ITestTargets)window.TestTargets;
+        ITestTargets targets = window.TestTargets;
         var rect = targets.Rectangle(1, 2);
         var h = rect.Height;
         var sum = targets.Sum(1, 2, 3, 4, 5);
