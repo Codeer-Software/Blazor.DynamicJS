@@ -24,19 +24,21 @@ namespace BlazorApp.WebAssembly
         Task<string> cAsync(int _);
     }
 
+    [JSCamelCase]
     public interface IRectangle
     { 
-        int height { get; set; }
-        int width { get; set; }
+        int Height { get; set; }
+        int Width { get; set; }
     }
 
+    [JSCamelCase]
     public interface ITestTargets
     {
-        [Constructor]
+        [JSConstructor, JSPascalCase]
         IRectangle Rectangle(int h, int w);
 
-        int sum(params int[] values);
+        int Sum(params int[] values);
 
-        int data { get; set; }
+        int Data { get; set; }
     }
 }

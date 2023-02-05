@@ -109,9 +109,32 @@ namespace Blazor.DynamicJS
         internal DynamicJSJsonableData ToJsonable()
             => new DynamicJSJsonableData { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
 
+        enum NamingCase
+        { 
+            None = 0,
+            Camel,
+            Pascal,
+        }
+
         internal object? InvokeProxyMethod(MethodInfo? targetMethod, object?[]? args)
         {
             var name = targetMethod!.Name;
+
+            //change naming rule
+            var namingCase = NamingCase.None;
+            if (targetMethod.GetCustomAttribute<JSCamelCaseAttribute>() != null) namingCase = NamingCase.Camel;
+            else if (targetMethod.GetCustomAttribute<JSPascalCaseAttribute>() != null) namingCase = NamingCase.Pascal;
+            else if(targetMethod.DeclaringType!.GetCustomAttribute<JSCamelCaseAttribute>() != null) namingCase = NamingCase.Camel;
+            else if (targetMethod.DeclaringType!.GetCustomAttribute<JSPascalCaseAttribute>() != null) namingCase = NamingCase.Pascal;
+            switch (namingCase)
+            {
+                case NamingCase.Camel:
+                    name= name.Substring(0, 1).ToLower() + name.Substring(1);
+                    break;
+                case NamingCase.Pascal:
+                    name = name.Substring(0, 1).ToUpper() + name.Substring(1);
+                    break;
+            }
 
             bool isAsync = false;
             var returnType = targetMethod.ReturnType;
@@ -140,8 +163,7 @@ namespace Blazor.DynamicJS
                 }
             }
 
-
-            var isNew = targetMethod.GetCustomAttribute<ConstructorAttribute>(false) != null;
+            var isNew = targetMethod.GetCustomAttribute<JSConstructorAttribute>(false) != null;
 
             return isAsync ?
                 InvokeProxyMethodAsync(args, name, returnType, isNew) :
@@ -194,6 +216,8 @@ namespace Blazor.DynamicJS
                     "CreateEx", new object[] { result });
             }
 
+            if (returnType == typeof(object)) return result;
+
             return _jsRuntime.Convert(returnType, result._id, result._accessor);
         }
 
@@ -244,6 +268,8 @@ namespace Blazor.DynamicJS
                     typeof(DynamicJSProxy<>), new[] { returnType },
                     "CreateExAsync", new object[] { result });
             }
+
+            if (returnType == typeof(object)) return result;
 
             return ReflectionHelper.InvokeGenericStaticMethod(
                    typeof(AsyncHelper<>), new[] { returnType },
