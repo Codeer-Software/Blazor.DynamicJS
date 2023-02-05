@@ -1,0 +1,102 @@
+﻿@page "/sample"
+@inject IJSRuntime JS
+@using System.Diagnostics
+@using Blazor.DynamicJS
+@implements IAsyncDisposable
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+
+
+<button class="btn btn-primary" @onclick="Test">Test</button>
+
+<div @ref="_elementReferenceSample">sample element reference</div>
+
+<div id="parent-div">
+</div>
+
+@code {
+
+    private async Task Test()
+    {
+        await Task.CompletedTask;
+
+
+
+        DomSample();
+        GlobalSample();
+        ElementReferenceSample();
+    }
+
+
+    ElementReference _elementReferenceSample;
+
+    DynamicJSRuntime _js;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _js = await JS.CreateDymaicRuntimeAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+        => await _js.DisposeAsync();
+
+
+
+
+    void DomSample()
+    {
+        dynamic window = _js.GetWindow();
+
+        dynamic button = window.document.createElement("button");
+        button.innerText = "new button";
+
+        dynamic div = window.document.getElementById("parent-div");
+        div.append(button);
+
+        //call back
+        button.addEventListener("click", (Action<dynamic>)(e => {
+            string detail = e.detail.toString();
+            window.console.log($"clicked {detail}");
+        }));
+    }
+
+    void GlobalSample()
+    {
+        dynamic window = _js.GetWindow();
+
+        //call function
+        int sum = window.TestTargets.sum(1, 2, 3, 4);
+        window.console.log(sum);
+
+        //new class
+        dynamic rect = new JSSyntax(window.TestTargets.Rectangle).New(10, 20);
+        window.console.log(rect.height);
+        window.console.log(rect.width);
+
+        //get data
+        int data = window.TestTargets.data;
+        window.console.log(data);
+
+        //array
+        for (int i = 0; i < (int)window.TestTargets.list.length; i++)
+        {
+            window.console.log(window.TestTargets.list[i]);
+        }
+
+        //add data
+        window.newData = new { num = 100, text = "text" };
+        window.console.log(window.newData.num);
+        window.console.log(window.newData.text);
+    }
+
+    void ElementReferenceSample()
+    {
+        var jsElement = _js.ToJS(_elementReferenceSample);
+        jsElement.innerText = "test";
+    }
+
+}

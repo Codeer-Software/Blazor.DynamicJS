@@ -22,7 +22,7 @@
     <script src="_framework/blazor.webassembly.js"></script>
 
     <script>
-        window.TestTargets =
+        TestTargets =
         {
             Rectangle: class {
                 constructor(height, width) {
@@ -39,8 +39,17 @@
                 return total;
             },
 
-            data: 100
+            data: 100,
+
+            list:[1, 2, 3, 4],
         }
+
+
+
+
+
+
+
 
         function func1(a1, a2, a3) {
             return a1 + a2 + a3;
