@@ -23,15 +23,17 @@
     {
         await Task.CompletedTask;
 
-
-
         DomSample();
         GlobalSample();
         ElementReferenceSample();
+        await ModuleSample();
+        await AsyncSample();
+        await AssignInterfaceSample();
     }
 
-
     ElementReference _elementReferenceSample;
+
+
 
     DynamicJSRuntime? _js;
 
@@ -65,24 +67,28 @@
     void GlobalSample()
     {
         dynamic window = _js!.GetWindow();
+        dynamic targets = window.TestTargets;
 
         //call function
-        int sum = window.TestTargets.sum(1, 2, 3, 4);
+        int sum = targets.sum(1, 2, 3, 4);
         window.console.log(sum);
 
         //new class
-        dynamic rect = new JSSyntax(window.TestTargets.Rectangle).New(10, 20);
+        dynamic rect = new JSSyntax(targets.Rectangle).New(10, 20);
         window.console.log(rect.height);
         window.console.log(rect.width);
 
+        //set data
+        targets.data = 100;
+
         //get data
-        int data = window.TestTargets.data;
+        int data = targets.data;
         window.console.log(data);
 
         //array
-        for (int i = 0; i < (int)window.TestTargets.list.length; i++)
+        for (int i = 0; i < (int)targets.list.length; i++)
         {
-            window.console.log(window.TestTargets.list[i]);
+            window.console.log(targets.list[i]);
         }
 
         //add data
@@ -93,7 +99,85 @@
 
     void ElementReferenceSample()
     {
-        var jsElement = _js!.ToJS(_elementReferenceSample);
+        dynamic jsElement = _js!.ToJS(_elementReferenceSample);
         jsElement.innerText = "test";
     }
+
+    async Task ModuleSample()
+    {
+        //Please specify with absolute path
+        dynamic mod = await _js!.ImportAsync("/module.js");
+
+        //call function
+        int sum = mod.sum(1, 2, 3, 4);
+
+        //new class
+        dynamic rect = new JSSyntax(mod.Rectangle).New(10, 20);
+
+        //get data
+        int data = mod.data;
+
+        //array
+        for (int i = 0; i < (int)mod.list.length; i++)
+        {
+            int val = mod.list[i];
+        }
+    }
+
+    async Task AsyncSample()
+    {
+        dynamic targets = _js!.GetWindow().TestTargets;
+
+        //call function
+        int sum = await new JSSyntax(targets.sum).InvokeAsync<int>(1, 2, 3, 4); 
+        
+        //void or not use result
+        await new JSSyntax(targets.sum).InvokeAsync(1, 2, 3, 4);
+
+        //syntax sugar
+        int sum2 = await targets.sum(1, 2, 3, 4, new JSAsync<int>());
+        await targets.sum(1, 2, 3, 4, new JSAsync());
+
+        //new class
+        dynamic rect = await new JSSyntax(targets.Rectangle).NewAsync(10, 20);
+
+        //set data
+        await new JSSyntax(targets.data).SetValueAsync(100);
+
+        //get data
+        int data = await new JSSyntax(targets.data).GetValueAsync<int>();
+
+        //array
+        int length = await new JSSyntax(targets.list.length).GetValueAsync<int>();
+        for (int i = 0; i < length; i++)
+        {
+            int val = await new JSSyntax(targets.list).GetIndexValueAsync<int>(i);
+        }
+    }
+
+    async Task AssignInterfaceSample()
+    {
+        ITestTargets targets = new JSSyntax(_js!.GetWindow().TestTargets).AssignInterface<ITestTargets>();
+
+        //call function
+        int sum = targets.Sum(1, 2, 3, 4);
+        int sum2 = await targets.SumAsync(1, 2, 3, 4);
+
+        //new class
+        IRectangle rect = targets.Rectangle(10, 20);
+
+        //set data
+        targets.Data = 100;
+
+        //get data
+        int data = targets.Data;
+
+        //array
+        for (int i = 0; i < (int)targets.List.Length; i++)
+        {
+            int val = targets.List[i];
+        }
+    }
+
+    //todo argument and resultValue rules.
 }

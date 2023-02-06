@@ -10,6 +10,7 @@
         public async Task<dynamic> NewAsync(params object?[] args)=> await _core.NewAsync(args);
         public async Task<TInterface> NewAsync<TInterface>(params object?[] args) => await _core.NewAsync<TInterface>(args);
         public async Task<dynamic> InvokeAsync(params object?[] args) => await _core.InvokeAsync(args);
+        public async Task<T> InvokeAsync<T>(params object?[] args) => await _core.InvokeAsync<T>(args);
         public async Task SetValueAsync(object? value) => await _core.SetValueAsync(value);
         public async Task SetIndexValueAsync(object index, object? value) => await _core.SetIndexValueAsync(index, value);
         public async Task<T> GetValueAsync<T>() => await _core.GetValueAsync<T>();

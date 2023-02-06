@@ -18,6 +18,11 @@ export function invokeMethod(cspRefeenceId, objId, names, theArgs) {
     }
 }
 
+export function invokeMethodAndGetObject(cspRefeenceId, objId, names, theArgs) {
+    let retObjId = invokeMethod(cspRefeenceId, objId, names, theArgs);
+    return objects[retObjId].obj;
+}
+
 export function setProperty (objId, names, obj) {
     var vals = [obj];
     resolveArgs(vals);
@@ -68,11 +73,11 @@ export async function importModule(cspRefeenceId, path) {
     }); 
 }
 
-export function createObject(cspRefeenceId, names, theArgs) {
+export function createObject(cspRefeenceId, objId, names, theArgs) {
 
     resolveArgs(theArgs);
 
-    const info = getInvokeInfo(0, names);
+    const info = getInvokeInfo(objId, names);
 
     const c = info.target == null ? window[info.last] : info.target[info.last];
     const obj = new c(...theArgs);

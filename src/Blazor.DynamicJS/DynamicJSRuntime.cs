@@ -31,6 +31,9 @@ namespace Blazor.DynamicJS
         public dynamic GetWindow()
             => new DynamicJS(this, 0, new List<string>());
 
+        public T GetWindow<T>()
+            => new DynamicJS(this, 0, new List<string>()).AssignInterface<T>();
+
         public async Task<dynamic> ImportAsync(string path)
         {
             if (path.StartsWith(".")) throw new ArgumentException("Please specify with absolute path");
@@ -93,6 +96,16 @@ namespace Blazor.DynamicJS
             return new DynamicJS(this, retObjId, new List<string>());
         }
 
+        internal async Task<T> InvokeAsync<T>(long objId, List<string> accessor, object?[] args)
+        {
+            if (typeof(T) == typeof(object))
+            {
+                var retObjId = await _helper.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                return await new DynamicJS(this, retObjId, new List<string>()).GetValueAsync<T>();
+            }
+            return await _helper.InvokeAsync<T>("invokeMethodAndGetObject", _guid, objId, accessor, AdjustArguments(args!));
+        }
+
         internal object? Convert(Type type, long objId, List<string> accessor)
             => ReflectionHelper.InvokeGenericStaticMethod(
                 typeof(Converter<>), new[] { type },
@@ -131,16 +144,16 @@ namespace Blazor.DynamicJS
             await _helper.InvokeVoidAsync("setIndex", objId, accessor, indexes[0], value);
         }
 
-        internal DynamicJS New(List<string> accessor, object?[] args)
+        internal DynamicJS New(long objId, List<string> accessor, object?[] args)
         {
-            var objId = _helper.Invoke<long>("createObject", _guid, accessor, AdjustArguments(args!));
-            return new DynamicJS(this, objId, new List<string>());
+            var retObjId = _helper.Invoke<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
+            return new DynamicJS(this, retObjId, new List<string>());
         }
 
-        internal async Task<DynamicJS> NewAsync(List<string> accessor, object?[] args)
+        internal async Task<DynamicJS> NewAsync(long objId, List<string> accessor, object?[] args)
         {
-            var objId = await _helper.InvokeAsync<long>("createObject", _guid, accessor, AdjustArguments(args!));
-            return new DynamicJS(this, objId, new List<string>());
+            var retObjId = await _helper.InvokeAsync<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
+            return new DynamicJS(this, retObjId, new List<string>());
         }
 
         internal C J2C<J, C>(J src)

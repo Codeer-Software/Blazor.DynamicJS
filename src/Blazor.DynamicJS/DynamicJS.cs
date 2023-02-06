@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.JSInterop;
+using System;
 using System.Collections;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Blazor.DynamicJS
 {
@@ -42,7 +44,28 @@ namespace Blazor.DynamicJS
         {
             var next = _accessor.ToList();
             next.Add(binder.Name);
-            result = _jsRuntime.InvokeMethod(_id, next, args ?? new object[0]);
+
+            //async
+            var argsAdjusted = args ?? new object[0];
+            var asyncObj = argsAdjusted.OfType<IJSAsync>().FirstOrDefault();
+            argsAdjusted = argsAdjusted.Where(x => x != asyncObj).ToArray();
+            if (asyncObj != null)
+            {
+                var type = asyncObj.GetType();
+                if (type.IsGenericType)
+                {
+                    result = ReflectionHelper.InvokeGenericStaticMethod(
+                       typeof(AsyncHelper<>), new[] { type.GetGenericArguments()[0] },
+                       "InvokeAsync", new object[] { _jsRuntime, _id, next, argsAdjusted });
+                }
+                else
+                {
+                    result = _jsRuntime.InvokeAsync(_id, next, argsAdjusted);
+                }
+                return true;
+            }
+
+            result = _jsRuntime.InvokeMethod(_id, next, argsAdjusted);
             return true;
         }
 
@@ -78,19 +101,22 @@ namespace Blazor.DynamicJS
             => DynamicJSProxy<TInterface>.CreateEx(this);
 
         internal dynamic New(params object?[] args)
-            => _jsRuntime.New(_accessor, args);
+            => _jsRuntime.New(_id, _accessor, args);
 
         internal TInterface New<TInterface>(params object?[] args)
-            => _jsRuntime.New(_accessor, args).AssignInterface<TInterface>();
+            => _jsRuntime.New(_id, _accessor, args).AssignInterface<TInterface>();
 
         internal async Task<dynamic> NewAsync(params object?[] args)
-            => await _jsRuntime.NewAsync(_accessor, args);
+            => await _jsRuntime.NewAsync(_id, _accessor, args);
 
         internal async Task<TInterface> NewAsync<TInterface>(params object?[] args)
-            => (await _jsRuntime.NewAsync(_accessor, args)).AssignInterface<TInterface>();
+            => (await _jsRuntime.NewAsync(_id, _accessor, args)).AssignInterface<TInterface>();
 
         internal async Task<dynamic> InvokeAsync(params object?[] args)
             => await _jsRuntime.InvokeAsync(_id, _accessor, args);
+
+        internal async Task<T> InvokeAsync<T>(params object?[] args)
+            => await _jsRuntime.InvokeAsync<T>(_id, _accessor, args);
 
         internal async Task SetValueAsync(object? value)
             => await _jsRuntime.SetValueAsync(_id, _accessor, value);
@@ -110,31 +136,18 @@ namespace Blazor.DynamicJS
         internal DynamicJSJsonableData ToJsonable()
             => new DynamicJSJsonableData { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
 
-        enum NamingCase
-        { 
-            None = 0,
-            Camel,
-            Pascal,
-        }
-
         internal object? InvokeProxyMethod(MethodInfo? targetMethod, object?[]? args)
         {
             var name = targetMethod!.Name;
 
             //change naming rule
-            var namingCase = NamingCase.None;
-            if (targetMethod.GetCustomAttribute<JSCamelCaseAttribute>() != null) namingCase = NamingCase.Camel;
-            else if (targetMethod.GetCustomAttribute<JSPascalCaseAttribute>() != null) namingCase = NamingCase.Pascal;
-            else if(targetMethod.DeclaringType!.GetCustomAttribute<JSCamelCaseAttribute>() != null) namingCase = NamingCase.Camel;
-            else if (targetMethod.DeclaringType!.GetCustomAttribute<JSPascalCaseAttribute>() != null) namingCase = NamingCase.Pascal;
-            switch (namingCase)
+            var isCamel = false;
+            if (targetMethod.GetCustomAttribute<JSCamelCaseAttribute>() != null) isCamel = true;
+            else if (targetMethod.GetCustomAttribute<JSIgnoreCaseAttribute>() != null) isCamel = false;
+            else if(targetMethod.DeclaringType!.GetCustomAttribute<JSCamelCaseAttribute>() != null) isCamel = true;
+            if (isCamel)
             {
-                case NamingCase.Camel:
-                    name= name.Substring(0, 1).ToLower() + name.Substring(1);
-                    break;
-                case NamingCase.Pascal:
-                    name = name.Substring(0, 1).ToUpper() + name.Substring(1);
-                    break;
+                name = name.Substring(0, 1).ToLower() + name.Substring(1);
             }
 
             bool isAsync = false;
@@ -201,7 +214,7 @@ namespace Blazor.DynamicJS
                 next.Add(name);
                 if (isNew)
                 {
-                    result = _jsRuntime.New(next, args ?? new object[0]);
+                    result = _jsRuntime.New(_id, next, args ?? new object[0]);
                 }
                 else
                 {
@@ -250,7 +263,7 @@ namespace Blazor.DynamicJS
                 next.Add(name);
                 if (isNew)
                 {
-                    result = _jsRuntime.NewAsync(next, args ?? new object[0]);
+                    result = _jsRuntime.NewAsync(_id, next, args ?? new object[0]);
                 }
                 else
                 {
@@ -283,10 +296,14 @@ namespace Blazor.DynamicJS
 
             internal static async Task<T> ConvertAsync(DynamicJSRuntime jsRuntime, Task<DynamicJS> tsk)
             {
+                //todo performance.
                 var js = (await tsk).ToJsonable();
                 var obj = await jsRuntime.ConvertAsync(typeof(T), js.BlazorDynamicJavaScriptObjectId, js.BlazorDynamicJavaScriptUnresolvedNames);
                 return (T)obj!;
             }
+
+            internal static async Task<T> InvokeAsync(DynamicJSRuntime jsRuntime, long objId, List<string> accessor, object[] args)
+                => await jsRuntime.InvokeAsync<T>(objId, accessor, args);
         }
     }
 }
