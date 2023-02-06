@@ -97,10 +97,12 @@
         window.console.log(window.newData.text);
     }
 
-    void ElementReferenceSample()
+    void ElementReferenceAndToJSSample()
     {
         dynamic jsElement = _js!.ToJS(_elementReferenceSample);
         jsElement.innerText = "test";
+
+        dynamic jsVariable = _js!.ToJS(new { a = 0, b = 1 });
     }
 
     async Task ModuleSample()
@@ -177,6 +179,11 @@
         {
             int val = targets.List[i];
         }
+
+
+
+        //New, ToJS, ImportModule, GetWindoew
+
     }
 
     //todo argument and resultValue rules.
