@@ -24,7 +24,7 @@ export function invokeMethodAndGetObject(cspRefeenceId, objId, names, theArgs) {
 }
 
 export function setProperty (objId, names, obj) {
-    var vals = [obj];
+    const vals = [obj];
     resolveArgs(vals);
     obj = vals[0];
 
@@ -38,12 +38,12 @@ export function setProperty (objId, names, obj) {
 export function getIndex(cspRefeenceId, objId, names, index) {
     if (names.length == 0) return objects[objId].obj;
     const info = getInvokeInfo(objId, names);
-    var obj = (info.target == null) ? window[info.last][index] : info.target[info.last][index];
+    const obj = (info.target == null) ? window[info.last][index] : info.target[info.last][index];
     return setObject(cspRefeenceId, obj, cspRefeenceId);
 }
 
 export function setIndex (objId, names, index, obj) {
-    var vals = [obj];
+    const vals = [obj];
     resolveArgs(vals);
     obj = vals[0];
 
@@ -86,9 +86,9 @@ export function createObject(cspRefeenceId, objId, names, theArgs) {
 }
 
 export function createFunction(cspRefeenceId, objRef, method, dynamicIndexes) {
-    var func = (...theArgs) => {
+    const func = (...theArgs) => {
 
-        var newArgs = [];
+        const newArgs = [];
         for (let i = 0; i < theArgs.length; i++) {
             if (dynamicIndexes.includes(i)) {
                 newArgs.push(setObject(cspRefeenceId, theArgs[i]));
@@ -97,10 +97,10 @@ export function createFunction(cspRefeenceId, objRef, method, dynamicIndexes) {
             }
         }
 
-        var ret = objRef.invokeMethod(method, ...newArgs);
+        const ret = objRef.invokeMethod(method, ...newArgs);
         if (ret && ret.hasOwnProperty("blazorDynamicJavaScriptObjectId")) {
-            var objId = ret["blazorDynamicJavaScriptObjectId"];
-            var names = ret["blazorDynamicJavaScriptUnresolvedNames"];
+            const objId = ret["blazorDynamicJavaScriptObjectId"];
+            const names = ret["blazorDynamicJavaScriptUnresolvedNames"];
             if (names.length == 0) {
                 return objects[objId].obj;
             } else {
@@ -125,8 +125,8 @@ export function dispose(cspRefeenceId) {
 function resolveArgs (theArgs) {
     for (let i = 0; i < theArgs.length; i++) {
         if (theArgs[i].hasOwnProperty("blazorDynamicJavaScriptObjectId")) {
-            var objId = theArgs[i]["blazorDynamicJavaScriptObjectId"];
-            var names = theArgs[i]["blazorDynamicJavaScriptUnresolvedNames"];
+            const objId = theArgs[i]["blazorDynamicJavaScriptObjectId"];
+            const names = theArgs[i]["blazorDynamicJavaScriptUnresolvedNames"];
 
             if (names.length == 0) {
                 theArgs[i] = objects[objId].obj;
@@ -150,7 +150,7 @@ function getInvokeInfo (objId, names) {
         if (target == null) target = window[e];
         else target = target[e];
     }
-    var ret = {
+    const ret = {
         last,
         target
     };
