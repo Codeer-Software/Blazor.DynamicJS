@@ -2,6 +2,8 @@
 
 namespace Blazor.DynamicJS
 {
+    //cast 
+
     class DynamicJSProxy<TInterface> : DispatchProxy, IDynamicJSOwner
     {
         public DynamicJS? DynamicJS { get; private set; }

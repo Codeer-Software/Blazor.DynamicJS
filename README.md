@@ -266,4 +266,3 @@ async Task AssignInterfaceSample()
     //New, ToJS, ImportModule, GetWindoew
 }
 ```
-```cs  
