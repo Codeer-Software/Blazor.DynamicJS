@@ -4,6 +4,10 @@ using System.Reflection;
 
 namespace Blazor.DynamicJS
 {
+    //todo ! != ==
+    //TryBinaryOperation
+    //TryUnaryOperation
+
     internal class DynamicJS : DynamicObject
     {
         DynamicJSRuntime _jsRuntime;
