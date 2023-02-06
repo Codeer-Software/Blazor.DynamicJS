@@ -1,10 +1,6 @@
-﻿using Microsoft.JSInterop;
-using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Dynamic;
-using System.Linq;
 using System.Reflection;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Blazor.DynamicJS
 {
