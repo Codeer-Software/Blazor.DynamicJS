@@ -5,7 +5,7 @@ Blazor.DynamicJS is a library for writing JavaScript using C#
 
 ## Features ...
 ### Useing dynamic.
-Write code in duck type using dynamic.
+Write code in duck typing using dynamic.
 
 ### Assign interface.
 You can also write code using types by assigning an interface. Just define an interface and Blazor.DynamicJS will use DispatchProxy to provide the implementation.
