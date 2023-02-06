@@ -272,6 +272,7 @@ namespace Blazor.DynamicJS
                     }
                 }
             }
+
             if (returnType.IsInterface)
             {
                 return ReflectionHelper.InvokeGenericStaticMethod(
