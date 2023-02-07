@@ -2,9 +2,11 @@
 
 namespace Blazor.DynamicJS
 {
-    //cast 
+    public interface IDymamicJSProxy {
+        TInterface Cast<TInterface>();
+    }
 
-    class DynamicJSProxy<TInterface> : DispatchProxy, IDynamicJSOwner
+    class DynamicJSProxy<TInterface> : DispatchProxy, IDynamicJSOwner, IDymamicJSProxy
     {
         public DynamicJS? DynamicJS { get; private set; }
 
@@ -20,6 +22,8 @@ namespace Blazor.DynamicJS
             await Task.CompletedTask;
             return CreateEx(_core);
         }
+
+        public TDst Cast<TDst>() => DynamicJS!.AssignInterface<TDst>();
 
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
             => DynamicJS!.InvokeProxyMethod(targetMethod, args);
