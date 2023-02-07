@@ -33,6 +33,7 @@ namespace BlazorApp.WebAssembly
         Task<int> get_ItemAsync(int index);
     }
 
+    [JSCamelCase]
     public interface IRectangle
     { 
         int Height { get; set; }

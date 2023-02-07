@@ -217,12 +217,11 @@ async Task AsyncSample()
 [JSCamelCase]
 public interface IArray
 {
+    int Length { get; }
     int this[int index] { get; set; }
-    int Length { get; set; }
-    Task set_ItemAsync(int index, int value);
-    Task<int> get_ItemAsync(int index);
 }
 
+[JSCamelCase]
 public interface IRectangle
 { 
     int Height { get; set; }
@@ -234,13 +233,13 @@ public interface ITestTargets
 {
     [JSConstructor, JSIgnoreCase]
     IRectangle Rectangle(int h, int w);
+    int Data { get; set; }
+    IArray List { get; set; }
 
     int Sum(params int[] values);
+
+    //if you need async
     Task<int> SumAsync(params int[] values);
-
-    int Data { get; set; }
-
-    IArray List { get; set; }
 }
 ```
 

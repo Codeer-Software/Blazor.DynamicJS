@@ -5,7 +5,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
+	  
+    <Title>Blazor.DynamicJS</Title>
+    <Authors>Tatsuya Ishikawa</Authors>
+    <Description>Blazor.DynamicJS is a library for writing JavaScript using C#.</Description>
+    <RepositoryUrl>https://github.com/Codeer-Software/Blazor.DynamicJS</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Codeer-Software/Blazor.DynamicJS</PackageProjectUrl>
+    <PackageTags>Blazor JavaScript</PackageTags>
+    <PackageSummary></PackageSummary>
+	<RequireLicenseAcceptance>false</RequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  
   </PropertyGroup>
 
   <ItemGroup>
