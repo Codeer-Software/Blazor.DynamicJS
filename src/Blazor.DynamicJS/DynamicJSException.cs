@@ -6,11 +6,7 @@ namespace Blazor.DynamicJS
     {
         public static string ToReturnType(Type type) => type == typeof(object) ? "dynamic" : type.Name;
 
-        public static string ToName(long objId, List<string> accessor)
-        {
-            objId.ToString();//todo
-            return string.Join(".", accessor);
-        }
+        public static string ToName(long _, List<string> accessor) => string.Join(".", accessor);
 
         public static string ToValue(object? value)
             => value == null ? "null" :

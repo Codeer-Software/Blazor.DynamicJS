@@ -310,7 +310,6 @@ namespace Blazor.DynamicJS
 
             internal static async Task<T> ConvertAsync(DynamicJSRuntime jsRuntime, Task<DynamicJS> tsk)
             {
-                //todo performance.
                 var js = (await tsk).ToJsonable();
                 var obj = await jsRuntime.ConvertAsync(typeof(T), js.BlazorDynamicJavaScriptObjectId, js.BlazorDynamicJavaScriptUnresolvedNames);
                 return (T)obj!;

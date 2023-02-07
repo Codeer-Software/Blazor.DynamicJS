@@ -161,7 +161,6 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                //todo performance
                 if (typeof(T) == typeof(object))
                 {
                     var retObjId = await _helper.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
