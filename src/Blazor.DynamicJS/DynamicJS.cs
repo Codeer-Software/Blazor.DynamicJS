@@ -147,7 +147,20 @@ namespace Blazor.DynamicJS
             else if(targetMethod.DeclaringType!.GetCustomAttribute<JSCamelCaseAttribute>() != null) isCamel = true;
             if (isCamel)
             {
-                name = name.Substring(0, 1).ToLower() + name.Substring(1);
+                if (name == "set_Item" || name == "get_Item") { }
+                else
+                {
+                    if (name.StartsWith("set_") || name.StartsWith("get_"))
+                    {
+                        var access = name.Substring(0, "set_".Length);
+                        var coreName = name.Substring("set_".Length);
+                        name = access + coreName.Substring(0, 1).ToLower() + coreName.Substring(1);
+                    }
+                    else
+                    {
+                        name = name.Substring(0, 1).ToLower() + name.Substring(1);
+                    }
+                }
             }
 
             bool isAsync = false;
