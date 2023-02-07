@@ -14,7 +14,3 @@ export function sum(...theArgs) {
 }
 
 export let data = 100;
-
-export const list = [1, 2, 3, 4];
-
-

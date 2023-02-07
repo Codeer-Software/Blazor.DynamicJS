@@ -97,14 +97,6 @@
         window.console.log(window.newData.text);
     }
 
-    void ElementReferenceAndToJSSample()
-    {
-        dynamic jsElement = _js!.ToJS(_elementReferenceSample);
-        jsElement.innerText = "test";
-
-        dynamic jsVariable = _js!.ToJS(new { a = 0, b = 1 });
-    }
-
     async Task ModuleSample()
     {
         //Please specify with absolute path
@@ -118,27 +110,34 @@
 
         //get data
         int data = mod.data;
+    }
 
-        //array
-        for (int i = 0; i < (int)mod.list.length; i++)
-        {
-            int val = mod.list[i];
-        }
+    void ElementReferenceAndToJSSample()
+    {
+        dynamic jsElement = _js!.ToJS(_elementReferenceSample);
+        jsElement.innerText = "test";
+
+        dynamic jsVariable = _js!.ToJS(new { a = 0, b = 1 });
     }
 
     async Task AsyncSample()
     {
         dynamic targets = _js!.GetWindow().TestTargets;
 
+        //sometimes methods will want to be called async.
+        //in that case, there is a simple way to write something like this.
+        int sum2 = await targets.sum(1, 2, 3, 4, new JSAsync<int>());
+        await targets.sum(1, 2, 3, 4, new JSAsync());
+
+
+        //You can also make properties and new async using JSSyntax. 
+        //Methods can also be made async this way
+
         //call function
         int sum = await new JSSyntax(targets.sum).InvokeAsync<int>(1, 2, 3, 4); 
         
         //void or not use result
         await new JSSyntax(targets.sum).InvokeAsync(1, 2, 3, 4);
-
-        //syntax sugar
-        int sum2 = await targets.sum(1, 2, 3, 4, new JSAsync<int>());
-        await targets.sum(1, 2, 3, 4, new JSAsync());
 
         //new class
         dynamic rect = await new JSSyntax(targets.Rectangle).NewAsync(10, 20);

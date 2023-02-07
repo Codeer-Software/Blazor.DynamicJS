@@ -43,7 +43,7 @@ namespace BlazorApp.WebAssembly
     [JSCamelCase]
     public interface ITestTargets
     {
-        [JSConstructor, JSIgnoreCase]
+        [JSConstructor, CSName]
         IRectangle Rectangle(int h, int w);
 
         int Sum(params int[] values);

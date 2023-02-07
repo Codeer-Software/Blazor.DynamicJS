@@ -136,8 +136,6 @@ export function sum(...theArgs) {
 }
 
 export let data = 100;
-
-export const list = [1, 2, 3, 4];
 ```
 
 ```cs  
@@ -154,12 +152,6 @@ async Task ModuleSample()
 
     //get data
     int data = mod.data;
-
-    //array
-    for (int i = 0; i < (int)mod.list.length; i++)
-    {
-        int val = mod.list[i];
-    }
 }
 ```
 
@@ -183,15 +175,20 @@ async Task AsyncSample()
 {
     dynamic targets = _js.GetWindow().TestTargets;
 
+    //sometimes methods will want to be called async.
+    //in that case, there is a simple way to write something like this.
+    int sum2 = await targets.sum(1, 2, 3, 4, new JSAsync<int>());
+    await targets.sum(1, 2, 3, 4, new JSAsync());
+
+
+    //You can also make properties and new async using JSSyntax. 
+    //Methods can also be made async this way
+
     //call function
     int sum = await new JSSyntax(targets.sum).InvokeAsync<int>(1, 2, 3, 4); 
     
     //void or not use result
     await new JSSyntax(targets.sum).InvokeAsync(1, 2, 3, 4);
-
-    //syntax sugar
-    int sum2 = await targets.sum(1, 2, 3, 4, new JSAsync<int>());
-    await targets.sum(1, 2, 3, 4, new JSAsync());
 
     //new class
     dynamic rect = await new JSSyntax(targets.Rectangle).NewAsync(10, 20);

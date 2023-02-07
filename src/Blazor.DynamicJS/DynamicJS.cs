@@ -143,7 +143,7 @@ namespace Blazor.DynamicJS
             //change naming rule
             var isCamel = false;
             if (targetMethod.GetCustomAttribute<JSCamelCaseAttribute>() != null) isCamel = true;
-            else if (targetMethod.GetCustomAttribute<JSIgnoreCaseAttribute>() != null) isCamel = false;
+            else if (targetMethod.GetCustomAttribute<CSNameAttribute>() != null) isCamel = false;
             else if(targetMethod.DeclaringType!.GetCustomAttribute<JSCamelCaseAttribute>() != null) isCamel = true;
             if (isCamel)
             {
