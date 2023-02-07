@@ -2,8 +2,6 @@
 
 namespace Blazor.DynamicJS
 {
-    //todo interface arguments.
-
     internal static class JSFunctionHelper
     {
         internal static bool Create(DynamicJSRuntime js, object obj, out object func, out int[] dynamicIndexes)
@@ -22,7 +20,7 @@ namespace Blazor.DynamicJS
             type = generics.Any() ? type.MakeGenericType(generics) : type;
             func = ReflectionHelper.Create(type, js, obj);
 
-            dynamicIndexes = method!.GetParameters().Select((e, i) => new { e.ParameterType, i }).Where(e => e.ParameterType == typeof(object) || e.ParameterType.IsInterface).Select(e => e.i).ToArray();
+            dynamicIndexes = method!.GetParameters().Select((e, i) => new { e.ParameterType, i }).Where(e => IsReferenceType(e.ParameterType)).Select(e => e.i).ToArray();
             return true;
         }
 
@@ -32,7 +30,7 @@ namespace Blazor.DynamicJS
         static Type[] GetGenerics(MethodInfo m)
         {
             static Type ConvertPramTypeC2J(Type e)
-                => (e == typeof(object) || e.IsInterface) ? typeof(long) : e;
+                => IsReferenceType(e) ? typeof(long) : e;
 
             var csParamTypes = m.GetParameters().Select(x => x.ParameterType);
             var jsParamTypes = csParamTypes.Select(e => ConvertPramTypeC2J(e));
@@ -43,7 +41,7 @@ namespace Blazor.DynamicJS
 
             //return
             var csReturnType = m.ReturnParameter.ParameterType;
-            var jsReturnType = csReturnType == typeof(object) ? typeof(DynamicJSJsonableData) : csReturnType;
+            var jsReturnType = IsReferenceType(csReturnType) ? typeof(DynamicJSJsonableData) : csReturnType;
             var list = new List<Type>();
             list.AddRange(csParamTypes);
             list.Add(csReturnType);
@@ -51,6 +49,8 @@ namespace Blazor.DynamicJS
             list.Add(jsReturnType);
             return list.ToArray();
         }
+
+        internal static bool IsReferenceType(Type type) => type == typeof(object) || type.IsInterface;
 
         static Type GetJSFunctionType(MethodInfo m)
         {

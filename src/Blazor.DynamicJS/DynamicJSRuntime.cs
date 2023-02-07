@@ -173,8 +173,11 @@ namespace Blazor.DynamicJS
         {
             if (src is DynamicJS ds)
             {
-                var x = typeof(J).ToString();
                 return (J)(object)ds.ToJsonable();
+            }
+            if (src is IDynamicJSOwner owner)
+            {
+                return (J)(object)owner.DynamicJS!.ToJsonable();
             }
             return (J)(object)src!;
         }
