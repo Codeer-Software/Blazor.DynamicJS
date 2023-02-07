@@ -1,8 +1,6 @@
 ﻿let objectIdCreate = 0;
 let objects = {};
 
-//todo change exception message.
-
 export function invokeMethod(cspRefeenceId, objId, names, theArgs) {
 
     resolveArgs(theArgs);

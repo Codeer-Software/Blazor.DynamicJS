@@ -1,4 +1,5 @@
 ﻿using Microsoft.JSInterop;
+using System;
 
 namespace Blazor.DynamicJS
 {
@@ -79,81 +80,188 @@ namespace Blazor.DynamicJS
         }
 
         internal void SetValue(long objId, List<string> accessor, object? value)
-            => _helper.InvokeVoid("setProperty", objId, accessor, AdjustObject(value));
+        {
+            try
+            {
+                _helper.InvokeVoid("setProperty", objId, accessor, AdjustObject(value));
+            }
+            catch
+            {
+                throw new DynamicJSPropertyException(objId, accessor, value);
+            }
+        }
 
         internal async Task SetValueAsync(long objId, List<string> accessor, object? value)
-            => await _helper.InvokeVoidAsync("setProperty", objId, accessor, AdjustObject(value));
+        {
+            try
+            {
+                await _helper.InvokeVoidAsync("setProperty", objId, accessor, AdjustObject(value));
+            }
+            catch
+            {
+                throw new DynamicJSPropertyException(objId, accessor, value);
+            }
+        }
+
+        internal object? Convert(Type type, long objId, List<string> accessor)
+        {
+            try
+            {
+                return ReflectionHelper.InvokeGenericStaticMethod(
+                typeof(Converter<>), new[] { type },
+                "Convert", new object[] { _helper, objId, accessor });
+            }
+            catch
+            {
+                throw new DynamicJSPropertyException(type, objId, accessor);
+            }
+        }
+
+        internal async Task<object?> ConvertAsync(Type type, long objId, List<string> accessor)
+        {
+            try
+            {
+                return await ((Task<object?>)ReflectionHelper.InvokeGenericStaticMethod(
+                    typeof(Converter<>), new[] { type },
+                    "ConvertAsync", new object[] { _helper, objId, accessor })!);
+            }
+            catch
+            {
+                throw new DynamicJSPropertyException(type, objId, accessor);
+            }
+        }
 
         internal DynamicJS InvokeMethod(long objId, List<string> accessor, object?[] args)
         {
-            var retObjId = _helper.Invoke<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
-            return new DynamicJS(this, retObjId, new List<string>());
+            try
+            {
+                var retObjId = _helper.Invoke<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                return new DynamicJS(this, retObjId, new List<string>());
+            }
+            catch
+            {
+                throw new DynamicJSFunctionException(objId, accessor, args!);
+            }
         }
 
         internal async Task<DynamicJS> InvokeAsync(long objId, List<string> accessor, object?[] args)
         {
-            var retObjId = await _helper.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
-            return new DynamicJS(this, retObjId, new List<string>());
+            try
+            {
+                var retObjId = await _helper.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                return new DynamicJS(this, retObjId, new List<string>());
+            }
+            catch
+            {
+                throw new DynamicJSFunctionException(objId, accessor, args!);
+            }
         }
 
         internal async Task<T> InvokeAsync<T>(long objId, List<string> accessor, object?[] args)
         {
-            if (typeof(T) == typeof(object))
+            try
             {
-                var retObjId = await _helper.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
-                return await new DynamicJS(this, retObjId, new List<string>()).GetValueAsync<T>();
+                //todo performance
+                if (typeof(T) == typeof(object))
+                {
+                    var retObjId = await _helper.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                    return await new DynamicJS(this, retObjId, new List<string>()).GetValueAsync<T>();
+                }
+                return await _helper.InvokeAsync<T>("invokeMethodAndGetObject", _guid, objId, accessor, AdjustArguments(args!));
             }
-            return await _helper.InvokeAsync<T>("invokeMethodAndGetObject", _guid, objId, accessor, AdjustArguments(args!));
+            catch
+            {
+                throw new DynamicJSFunctionException(objId, accessor, args!);
+            }
         }
-
-        internal object? Convert(Type type, long objId, List<string> accessor)
-            => ReflectionHelper.InvokeGenericStaticMethod(
-                typeof(Converter<>), new[] { type },
-                "Convert", new object[] { _helper, objId, accessor });
-
-        internal async Task<object?> ConvertAsync(Type type, long objId, List<string> accessor)
-            => await ((Task<object?>)ReflectionHelper.InvokeGenericStaticMethod(
-                typeof(Converter<>), new[] { type },
-                "ConvertAsync", new object[] { _helper, objId, accessor })!);
 
         internal DynamicJS InvokeFunctionObject(long objId, List<string> accessor, object?[] args)
         {
-            var retObjId = _helper.Invoke<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
-            return new DynamicJS(this, retObjId, new List<string>());
+            try
+            {
+                var retObjId = _helper.Invoke<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                return new DynamicJS(this, retObjId, new List<string>());
+            }
+            catch
+            {
+                throw new DynamicJSFunctionException(objId, accessor, args!);
+            }
         }
 
         internal DynamicJS GetIndex(long objId, List<string> accessor, object[] indexes)
         {
-            var retObjId = _helper.Invoke<long>("getIndex", _guid, objId, accessor, indexes[0]);
-            return new DynamicJS(this, retObjId, new List<string>());
+            try
+            {
+                var retObjId = _helper.Invoke<long>("getIndex", _guid, objId, accessor, indexes[0]);
+                return new DynamicJS(this, retObjId, new List<string>());
+            }
+            catch
+            {
+                throw new DynamicJSIndexPropertyException(objId, accessor, indexes);
+            }
         }
 
         internal async Task<DynamicJS> GetIndexAsync(long objId, List<string> accessor, object[] indexes)
         {
-            var retObjId = await _helper.InvokeAsync<long>("getIndex", _guid, objId, accessor, indexes[0]);
-            return new DynamicJS(this, retObjId, new List<string>());
+            try
+            {
+                var retObjId = await _helper.InvokeAsync<long>("getIndex", _guid, objId, accessor, indexes[0]);
+                return new DynamicJS(this, retObjId, new List<string>());
+            }
+            catch
+            {
+                throw new DynamicJSIndexPropertyException(objId, accessor, indexes);
+            }
         }
 
         internal void SetIndex(long objId, List<string> accessor, object[] indexes, object? value)
         {
-            _helper.InvokeVoid("setIndex", objId, accessor, indexes[0], value);
+            try
+            {
+                _helper.InvokeVoid("setIndex", objId, accessor, indexes[0], value);
+            }
+            catch
+            {
+                throw new DynamicJSIndexPropertyException(objId, accessor, indexes, value);
+            }
         }
 
         internal async Task SetIndexAsync(long objId, List<string> accessor, object[] indexes, object? value)
         {
-            await _helper.InvokeVoidAsync("setIndex", objId, accessor, indexes[0], value);
+            try
+            {
+                await _helper.InvokeVoidAsync("setIndex", objId, accessor, indexes[0], value);
+            }
+            catch
+            {
+                throw new DynamicJSIndexPropertyException(objId, accessor, indexes, value);
+            }
         }
 
         internal DynamicJS New(long objId, List<string> accessor, object?[] args)
         {
-            var retObjId = _helper.Invoke<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
-            return new DynamicJS(this, retObjId, new List<string>());
+            try
+            {
+                var retObjId = _helper.Invoke<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
+                return new DynamicJS(this, retObjId, new List<string>());
+            }
+            catch
+            {
+                throw new DynamicJSNewException(objId, accessor, args!);
+            }
         }
 
         internal async Task<DynamicJS> NewAsync(long objId, List<string> accessor, object?[] args)
         {
-            var retObjId = await _helper.InvokeAsync<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
-            return new DynamicJS(this, retObjId, new List<string>());
+            try
+            {
+                var retObjId = await _helper.InvokeAsync<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
+                return new DynamicJS(this, retObjId, new List<string>());
+            }
+            catch
+            {
+                throw new DynamicJSNewException(objId, accessor, args!);
+            }
         }
 
         internal C J2C<J, C>(J src)
