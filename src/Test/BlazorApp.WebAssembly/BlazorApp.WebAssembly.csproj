@@ -15,14 +15,4 @@
     <ProjectReference Include="..\..\Blazor.DynamicJS\Blazor.DynamicJS.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Update="wwwroot\blazor.dynamicjs\helper.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="xcopy &quot;$(SolutionDir)\Blazor.DynamicJS\wwwroot\blazor.dynamicjs&quot; &quot;$(SolutionDir)\Test\BlazorApp.WebAssembly\wwwroot\blazor.dynamicjs&quot; /Y /R" />
-  </Target>
-
 </Project>

@@ -4,7 +4,7 @@ namespace Blazor.DynamicJS
 {
     public static class IJSRuntimeExtentions
     {
-        public static string HelperJSPath { get; set; } = "./blazor.dynamicjs/helper.js";
+        const string HelperJSPath = "/_content/Blazor.DynamicJS/helper.js";
 
         public static async Task<DynamicJSRuntime> CreateDymaicRuntimeAsync(this IJSRuntime jsRuntime)
         {
