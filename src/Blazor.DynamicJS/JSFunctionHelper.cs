@@ -2,6 +2,8 @@
 
 namespace Blazor.DynamicJS
 {
+    //todo interface arguments.
+
     internal static class JSFunctionHelper
     {
         internal static bool Create(DynamicJSRuntime js, object obj, out object func, out int[] dynamicIndexes)
