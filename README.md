@@ -11,10 +11,9 @@ Write code in duck typing using dynamic.
 You can also write code using types by assigning an interface. Just define an interface and Blazor.DynamicJS will use DispatchProxy to provide the implementation.
 
 ## Getting Started
-... just moment
+Blazor.DynamicJS from NuGet.
 
-
-
+    PM> Install-Package Blazor.DynamicJS
 
 ## Samples
 
