@@ -19,6 +19,11 @@ Blazor.DynamicJS from NuGet.
 
 ### Initialize
 ```cs  
+@using Blazor.DynamicJS
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+```
+```cs  
 DynamicJSRuntime? _js;
 
 protected override async Task OnInitializedAsync()
