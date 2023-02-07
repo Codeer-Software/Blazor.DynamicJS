@@ -32,7 +32,7 @@ namespace Blazor.DynamicJS
     public class DynamicJSFunctionException : Exception
     {
         public DynamicJSFunctionException(long objId, List<string> accessor, object?[] args)
-            : base(ToName(objId, accessor) + " = " + ToArgs(args) + " : there is an error somewhere in names or return value type or arguments.") { }
+            : base(ToName(objId, accessor) + "(" + ToArgs(args) + ") : there is an error somewhere in names or return value type or arguments.") { }
     }
 
     public class DynamicJSIndexPropertyException : Exception
@@ -49,6 +49,6 @@ namespace Blazor.DynamicJS
         public DynamicJSNewException(string message) : base(message) { }
 
         public DynamicJSNewException(long objId, List<string> accessor, object?[] args)
-            : base("new " + ToName(objId, accessor) + " = " + ToArgs(args) + " : there is an error somewhere in names or arguments.") { }
+            : base("new " + ToName(objId, accessor) + "(" + ToArgs(args) + ") : there is an error somewhere in names or arguments.") { }
     }
 }
