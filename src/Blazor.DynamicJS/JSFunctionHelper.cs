@@ -22,7 +22,7 @@ namespace Blazor.DynamicJS
             type = generics.Any() ? type.MakeGenericType(generics) : type;
             func = ReflectionHelper.Create(type, js, obj);
 
-            dynamicIndexes = method!.GetParameters().Select((e, i) => new { e.ParameterType, i }).Where(e => e.ParameterType == typeof(object)).Select(e => e.i).ToArray();
+            dynamicIndexes = method!.GetParameters().Select((e, i) => new { e.ParameterType, i }).Where(e => e.ParameterType == typeof(object) || e.ParameterType.IsInterface).Select(e => e.i).ToArray();
             return true;
         }
 
@@ -32,7 +32,7 @@ namespace Blazor.DynamicJS
         static Type[] GetGenerics(MethodInfo m)
         {
             static Type ConvertPramTypeC2J(Type e)
-                => e == typeof(object) ? typeof(long) : e;
+                => (e == typeof(object) || e.IsInterface) ? typeof(long) : e;
 
             var csParamTypes = m.GetParameters().Select(x => x.ParameterType);
             var jsParamTypes = csParamTypes.Select(e => ConvertPramTypeC2J(e));

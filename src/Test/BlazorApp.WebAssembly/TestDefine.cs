@@ -53,4 +53,15 @@ namespace BlazorApp.WebAssembly
 
         IArray List { get; set; }
     }
+
+    public interface IDetail
+    {
+        string toString();
+    }
+
+    public interface IEvent
+    {
+        IDetail detail { get; }
+    }
+
 }

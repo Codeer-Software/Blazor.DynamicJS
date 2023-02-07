@@ -162,6 +162,10 @@ namespace Blazor.DynamicJS
             {
                 return (C)(object)new DynamicJS(this, (long)(object)src!, new List<string>());
             }
+            else if (typeof(C).IsInterface)
+            {
+                return new DynamicJS(this, (long)(object)src!, new List<string>()).AssignInterface<C>();
+            }
             return (C)(object)src!;
         }
 
