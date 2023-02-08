@@ -2,8 +2,6 @@
 
 namespace Blazor.DynamicJS
 {
-    //todo callback async
-
     public class JSFunctionVoid
     {
         DynamicJSRuntime _js;
