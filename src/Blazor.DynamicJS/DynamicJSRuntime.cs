@@ -308,14 +308,16 @@ namespace Blazor.DynamicJS
         {
             if (obj == null) return null;
 
-            if (!JSFunctionHelper.Create(this, obj, out var function, out var dynamicIndexes)) return null;
+            if (!JSFunctionHelper.Create(this, obj, out var function, out var dynamicIndexes, out var isAsync)) return null;
 
             var objRef = (IDisposable)ReflectionHelper.InvokeGenericStaticMethod(
                 typeof(DotNetObjectReferenceWrapper<>), new[] { function.GetType() },
                 "Create", new object[] { function })!;
 
             _disposables.Add(objRef);
-            var objId = _helper.Invoke<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
+            var objId = isAsync ? 
+                _helper.Invoke<long>("createAsyncFunction", _guid, objRef, "Function", dynamicIndexes) :
+                _helper.Invoke<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
             return new DynamicJS(this, objId, new List<string>());
         }
 

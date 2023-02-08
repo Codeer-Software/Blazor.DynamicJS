@@ -4,15 +4,18 @@ namespace Blazor.DynamicJS
 {
     internal static class JSFunctionHelper
     {
-        internal static bool Create(DynamicJSRuntime js, object obj, out object func, out int[] dynamicIndexes)
+        internal static bool Create(DynamicJSRuntime js, object obj, out object func, out int[] dynamicIndexes, out bool isAsync)
         {
+            isAsync = false;
             func = new object();
-            dynamicIndexes = new int[0]; 
+            dynamicIndexes = new int[0];
 
             var t = obj.GetType();
             if (!IsDelegate(t)) return false;
 
             var method = t.GetMethod("Invoke");
+
+            isAsync = IsTask(method!.ReturnType);
 
             var type = GetJSFunctionType(method!);
             var generics = GetGenerics(method!);
@@ -23,6 +26,12 @@ namespace Blazor.DynamicJS
             dynamicIndexes = method!.GetParameters().Select((e, i) => new { e.ParameterType, i }).Where(e => IsReferenceType(e.ParameterType)).Select(e => e.i).ToArray();
             return true;
         }
+
+        static bool IsTask(Type returnType)
+            => returnType == typeof(Task) || (IsGenericTask(returnType));
+
+        static bool IsGenericTask(Type returnType)
+            => returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>);
 
         static bool IsDelegate(Type t)
             => t.IsSubclassOf(typeof(Delegate)) || t.Equals(typeof(Delegate));
@@ -35,13 +44,23 @@ namespace Blazor.DynamicJS
             var csParamTypes = m.GetParameters().Select(x => x.ParameterType);
             var jsParamTypes = csParamTypes.Select(e => ConvertPramTypeC2J(e));
 
+            var csReturnType = m.ReturnParameter.ParameterType;
+
             //void
-            if (m.ReturnParameter.ParameterType == typeof(void))
+            if (csReturnType == typeof(void))
                 return csParamTypes.Concat(jsParamTypes).ToArray();
 
+            Type jsReturnType;
+            if (IsGenericTask(csReturnType))
+            {
+                jsReturnType = IsReferenceType(csReturnType.GetGenericArguments()[0]) ? typeof(Task<DynamicJSJsonableData>) : csReturnType;
+            }
+            else
+            {
+                jsReturnType = IsReferenceType(csReturnType) ? typeof(DynamicJSJsonableData) : csReturnType;
+            }
+
             //return
-            var csReturnType = m.ReturnParameter.ParameterType;
-            var jsReturnType = IsReferenceType(csReturnType) ? typeof(DynamicJSJsonableData) : csReturnType;
             var list = new List<Type>();
             list.AddRange(csParamTypes);
             list.Add(csReturnType);

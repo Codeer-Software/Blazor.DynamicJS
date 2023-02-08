@@ -114,6 +114,41 @@ export function createFunction(cspRefeenceId, objRef, method, dynamicIndexes) {
     return setObject(cspRefeenceId, func);
 }
 
+export function createAsyncFunction(cspRefeenceId, objRef, method, dynamicIndexes) {
+    const func = async (...theArgs) => {
+
+        const newArgs = [];
+        for (let i = 0; i < theArgs.length; i++) {
+            if (dynamicIndexes.includes(i)) {
+                newArgs.push(setObject(cspRefeenceId, theArgs[i]));
+            } else {
+                newArgs.push(theArgs[i]);
+            }
+        }
+
+        const ret = await objRef.invokeMethodAsync(method, ...newArgs);
+        if (ret && ret.hasOwnProperty("blazorDynamicJavaScriptObjectId")) {
+            const objId = ret["blazorDynamicJavaScriptObjectId"];
+            const names = ret["blazorDynamicJavaScriptUnresolvedNames"];
+            if (names.length == 0) {
+                return new Promise(resolve => {
+                    resolve(objects[objId].obj);
+                });
+            } else {
+                const info = getInvokeInfo(objId, names);
+                const obj = (info.target == null) ? window[info.last] : info.target[info.last];
+                return new Promise(resolve => {
+                    resolve(obj);
+                });
+            }
+        }
+        return new Promise(resolve => {
+            resolve(ret);
+        });
+    }
+    return setObject(cspRefeenceId, func);
+}
+
 export function dispose(cspRefeenceId) {
     for (let key in objects) {
         if (objects[key].cspRefeenceId === cspRefeenceId) {
