@@ -1,21 +1,34 @@
 ﻿namespace Blazor.DynamicJS
 {
-    public class JSConstructorAttribute : Attribute { }
+    public class JSConstructorAttribute : Attribute
+    {
+        public string Name { get; } = string.Empty;
+        public JSConstructorAttribute() { }
+        public JSConstructorAttribute(string name) { }
+    }
 
-    //todo
-    public class JSProperty : Attribute { }
+    public class JSProperty : Attribute
+    {
+        public string Name { get; } = string.Empty;
+        public JSProperty() { }
+        public JSProperty(string name) { }
+    }
 
-    //todo
-    public class JSIndexProperty : Attribute { }
+    public class JSIndexProperty : Attribute
+    {
+        public string Name { get; } = string.Empty;
+        public JSIndexProperty() { }
+        public JSIndexProperty(string name) { }
+    }
+
+    public class JSNameAttribute : Attribute
+    {
+        public string Name { get; }
+        public JSNameAttribute(string name) => Name = name;
+    }
 
     public class JSCamelCaseAttribute : Attribute { }
     
     public class CSNameAttribute : Attribute { }
 
-    //todo
-    public class JSNameAttribute : Attribute 
-    {
-        public string Name { get; }
-        public JSNameAttribute(string name) => Name = name;
-    }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Dynamic;
 using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Blazor.DynamicJS
 {
@@ -136,16 +137,47 @@ namespace Blazor.DynamicJS
         internal DynamicJSJsonableData ToJsonable()
             => new DynamicJSJsonableData { BlazorDynamicJavaScriptUnresolvedNames = _accessor, BlazorDynamicJavaScriptObjectId = _id };
 
+        //todo test
+        enum MethodType
+        { 
+            Method,
+            GetProperty,
+            SetProperty,
+            GetIndexProperty,
+            SetIndexProperty,
+            New,
+        }
+
         internal object? InvokeProxyMethod(MethodInfo? targetMethod, object?[]? args)
         {
             var name = targetMethod!.Name;
+            var methodType = MethodType.Method;
 
-            //change naming rule
-            var isCamel = false;
-            if (targetMethod.GetCustomAttribute<JSCamelCaseAttribute>() != null) isCamel = true;
-            else if (targetMethod.GetCustomAttribute<CSNameAttribute>() != null) isCamel = false;
-            else if(targetMethod.DeclaringType!.GetCustomAttribute<JSCamelCaseAttribute>() != null) isCamel = true;
-            if (isCamel)
+            bool isAsync = false;
+            var returnType = targetMethod.ReturnType;
+            if (returnType == typeof(Task))
+            {
+                isAsync = true;
+                returnType = typeof(void);
+            }
+            else if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                isAsync = true;
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            if (isAsync && name.EndsWith("Async"))
+            {
+                name = name.Substring(0, name.Length - "Async".Length);
+            }
+
+            if (name == "set_Item") methodType = MethodType.SetIndexProperty;
+            else if (name.StartsWith("set_")) methodType = MethodType.SetProperty;
+            else if (name == "get_Item") methodType = MethodType.GetIndexProperty;
+            else if (name.StartsWith("get_")) methodType = MethodType.GetProperty;
+
+            var attrs = targetMethod.GetCustomAttributes();
+            if ((attrs.OfType<JSCamelCaseAttribute>().Any() || targetMethod.DeclaringType!.GetCustomAttribute<JSCamelCaseAttribute>() != null))
             {
                 if (name == "set_Item" || name == "get_Item") { }
                 else
@@ -163,21 +195,30 @@ namespace Blazor.DynamicJS
                 }
             }
 
-            bool isAsync = false;
-            var returnType = targetMethod.ReturnType;
-            if (returnType == typeof(Task))
+            if (attrs.OfType<CSNameAttribute>().Any()) name = targetMethod!.Name;
+
+            var constructorAttr = attrs.OfType<JSConstructorAttribute>().FirstOrDefault();
+            if (constructorAttr != null)
             {
-                isAsync = true;
-                returnType = typeof(void);
+                if (!string.IsNullOrEmpty(constructorAttr.Name)) name = constructorAttr.Name;
+                methodType = MethodType.New;
             }
-            else if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            var propertyAttr = attrs.OfType<JSProperty>().FirstOrDefault();
+            if (propertyAttr != null)
             {
-                isAsync = true;
-                returnType = returnType.GetGenericArguments()[0];
+                if (!string.IsNullOrEmpty(propertyAttr.Name)) name = propertyAttr.Name;
+                methodType = targetMethod.ReturnType == typeof(void) ? MethodType.SetProperty : MethodType.GetProperty;
             }
-            if (isAsync && name.EndsWith("Async"))
+            var indexAttr = attrs.OfType<JSIndexProperty>().FirstOrDefault();
+            if (indexAttr != null)
             {
-                name = name.Substring(0, name.Length - "Async".Length);
+                if (!string.IsNullOrEmpty(indexAttr.Name)) name = indexAttr.Name;
+                methodType = targetMethod.ReturnType == typeof(void) ? MethodType.SetIndexProperty : MethodType.GetIndexProperty;
+            }
+            var nameAttr = attrs.OfType<JSNameAttribute>().FirstOrDefault();
+            if (nameAttr != null)
+            {
+                if (!string.IsNullOrEmpty(nameAttr.Name)) name = nameAttr.Name;
             }
 
             var lastArg = targetMethod.GetParameters().LastOrDefault();
@@ -190,22 +231,20 @@ namespace Blazor.DynamicJS
                 }
             }
 
-            var isNew = targetMethod.GetCustomAttribute<JSConstructorAttribute>(false) != null;
-
             return isAsync ?
-                InvokeProxyMethodAsync(args, name, returnType, isNew) :
-                InvokeProxyMethod(args, name, returnType, isNew);
+                InvokeProxyMethodAsync(args, name, returnType, methodType) :
+                InvokeProxyMethod(args, name, returnType, methodType);
         }
 
-        object? InvokeProxyMethod(object?[]? args, string name, Type returnType, bool isNew)
+        object? InvokeProxyMethod(object?[]? args, string name, Type returnType, MethodType methodType)
         {
             var next = _accessor.ToList();
-            if (name == "set_Item")
+            if (methodType == MethodType.SetIndexProperty)
             {
                 _jsRuntime.SetIndex(_id, _accessor, new[] { args![0]! }, args[1]);
                 return null;
             }
-            if (name.StartsWith("set_"))
+            if (methodType == MethodType.SetProperty)
             {
                 next.Add(name.Substring("set_".Length));
                 _jsRuntime.SetValue(_id, next, args![0]);
@@ -213,11 +252,11 @@ namespace Blazor.DynamicJS
             }
 
             DynamicJS result;
-            if (name == "get_Item")
+            if (methodType == MethodType.GetIndexProperty)
             {
                 result = _jsRuntime.GetIndex(_id, _accessor, new[] { args![0]! });
             }
-            else if (name.StartsWith("get_"))
+            else if (methodType == MethodType.GetProperty)
             {
                 next.Add(name.Substring("get_".Length));
                 result = new DynamicJS(_jsRuntime, _id, next);
@@ -225,7 +264,7 @@ namespace Blazor.DynamicJS
             else
             {
                 next.Add(name);
-                if (isNew)
+                if (methodType == MethodType.New)
                 {
                     result = _jsRuntime.New(_id, next, args ?? new object[0]);
                 }
@@ -248,25 +287,25 @@ namespace Blazor.DynamicJS
             return _jsRuntime.Convert(returnType, result._id, result._accessor);
         }
 
-        object? InvokeProxyMethodAsync(object?[]? args, string name, Type returnType, bool isNew)
+        object? InvokeProxyMethodAsync(object?[]? args, string name, Type returnType, MethodType methodType)
         {
             var next = _accessor.ToList();
-            if (name == "set_Item")
+            if (methodType == MethodType.SetIndexProperty)
             {
                 return _jsRuntime.SetIndexAsync(_id, _accessor, new[] { args![0]! }, args[1]);
             }
-            if (name.StartsWith("set_"))
+            if (methodType == MethodType.SetProperty)
             {
                 next.Add(name.Substring("set_".Length));
                 return _jsRuntime.SetValueAsync(_id, next, args![0]);
             }
 
             Task<DynamicJS> result;
-            if (name == "get_Item")
+            if (methodType == MethodType.GetIndexProperty)
             {
                 result = _jsRuntime.GetIndexAsync(_id, _accessor, new[] { args![0]! });
             }
-            else if (name.StartsWith("get_"))
+            else if (methodType == MethodType.GetProperty)
             {
                 next.Add(name.Substring("get_".Length));
                 result = Task.Factory.StartNew(()=> new DynamicJS(_jsRuntime, _id, next));
@@ -274,12 +313,13 @@ namespace Blazor.DynamicJS
             else
             {
                 next.Add(name);
-                if (isNew)
+                if (methodType == MethodType.New)
                 {
                     result = _jsRuntime.NewAsync(_id, next, args ?? new object[0]);
                 }
                 else
                 {
+                    //todo performance
                     result = _jsRuntime.InvokeAsync(_id, next, args ?? new object[0]);
                     if (returnType == typeof(void))
                     {
