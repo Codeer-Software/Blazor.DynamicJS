@@ -1,17 +1,19 @@
 ﻿using Microsoft.JSInterop;
-using System;
 
 namespace Blazor.DynamicJS
 {
     public class DynamicJSRuntime : IDisposable, IAsyncDisposable
     {
         readonly Guid _guid;
-        readonly IJSInProcessObjectReference _helper;
+        IJSObjectReference HelperAsync { get; }
+        IJSInProcessObjectReference HelperInprocess => (IJSInProcessObjectReference)HelperAsync;
+
         List<IDisposable> _disposables = new List<IDisposable>();
 
-        internal DynamicJSRuntime(IJSInProcessObjectReference helper)
+        internal DynamicJSRuntime(IJSObjectReference helper)
         {
-            _helper = helper;
+            //IJSInProcessObjectReference
+            HelperAsync = helper;
             _guid = Guid.NewGuid();
         }
 
@@ -19,14 +21,14 @@ namespace Blazor.DynamicJS
         {
             _disposables.ForEach(e => e.Dispose());
             _disposables = new List<IDisposable>();
-            _helper.InvokeVoid("dispose", _guid);
+            HelperInprocess.InvokeVoid("dispose", _guid);
         }
 
         public async ValueTask DisposeAsync()
         {
             _disposables.ForEach(e => e.Dispose());
             _disposables = new List<IDisposable>();
-            await _helper.InvokeVoidAsync("dispose", _guid);
+            await HelperAsync.InvokeVoidAsync("dispose", _guid);
         }
 
         public dynamic GetWindow()
@@ -38,7 +40,7 @@ namespace Blazor.DynamicJS
         public async Task<dynamic> ImportAsync(string path)
         {
             if (path.StartsWith(".")) throw new ArgumentException("Please specify with absolute path");
-            var objId = await _helper.InvokeAsync<long>("importModule", _guid, path);
+            var objId = await HelperAsync.InvokeAsync<long>("importModule", _guid, path);
             return new DynamicJS(this, objId, new List<string>());
         }
 
@@ -54,7 +56,7 @@ namespace Blazor.DynamicJS
             var function = ToJSFunction(obj);
             if (function != null) return function;
 
-            var objId = _helper.Invoke<long>("setObject", _guid, obj);
+            var objId = HelperInprocess.Invoke<long>("setObject", _guid, obj);
             return new DynamicJS(this, objId, new List<string>());
         }
 
@@ -69,7 +71,7 @@ namespace Blazor.DynamicJS
             var function = ToJSFunction(obj);
             if (function != null) return function;
 
-            var objId = await _helper.InvokeAsync<long>("setObject", _guid, obj);
+            var objId = await HelperAsync.InvokeAsync<long>("setObject", _guid, obj);
             return new DynamicJS(this, objId, new List<string>());
         }
 
@@ -83,7 +85,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                _helper.InvokeVoid("setProperty", objId, accessor, AdjustObject(value));
+                HelperInprocess.InvokeVoid("setProperty", objId, accessor, AdjustObject(value));
             }
             catch
             {
@@ -95,7 +97,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                await _helper.InvokeVoidAsync("setProperty", objId, accessor, AdjustObject(value));
+                await HelperAsync.InvokeVoidAsync("setProperty", objId, accessor, AdjustObject(value));
             }
             catch
             {
@@ -109,7 +111,7 @@ namespace Blazor.DynamicJS
             {
                 return ReflectionHelper.InvokeGenericStaticMethod(
                 typeof(Converter<>), new[] { type },
-                "Convert", new object[] { _helper, objId, accessor });
+                "Convert", new object[] { HelperAsync, objId, accessor });
             }
             catch
             {
@@ -123,7 +125,7 @@ namespace Blazor.DynamicJS
             {
                 return await ((Task<object?>)ReflectionHelper.InvokeGenericStaticMethod(
                     typeof(Converter<>), new[] { type },
-                    "ConvertAsync", new object[] { _helper, objId, accessor })!);
+                    "ConvertAsync", new object[] { HelperAsync, objId, accessor })!);
             }
             catch
             {
@@ -135,7 +137,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                var retObjId = _helper.Invoke<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                var retObjId = HelperInprocess.Invoke<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
                 return new DynamicJS(this, retObjId, new List<string>());
             }
             catch
@@ -148,7 +150,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                var retObjId = await _helper.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                var retObjId = await HelperAsync.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
                 return new DynamicJS(this, retObjId, new List<string>());
             }
             catch
@@ -163,10 +165,10 @@ namespace Blazor.DynamicJS
             {
                 if (typeof(T) == typeof(object))
                 {
-                    var retObjId = await _helper.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                    var retObjId = await HelperAsync.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
                     return await new DynamicJS(this, retObjId, new List<string>()).GetValueAsync<T>();
                 }
-                return await _helper.InvokeAsync<T>("invokeMethodAndGetObject", _guid, objId, accessor, AdjustArguments(args!));
+                return await HelperAsync.InvokeAsync<T>("invokeMethodAndGetObject", _guid, objId, accessor, AdjustArguments(args!));
             }
             catch
             {
@@ -178,7 +180,8 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                var retObjId = _helper.Invoke<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                //todo inprocess only
+                var retObjId = HelperInprocess.Invoke<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
                 return new DynamicJS(this, retObjId, new List<string>());
             }
             catch
@@ -191,7 +194,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                var retObjId = _helper.Invoke<long>("getIndex", _guid, objId, accessor, indexes[0]);
+                var retObjId = HelperInprocess.Invoke<long>("getIndex", _guid, objId, accessor, indexes[0]);
                 return new DynamicJS(this, retObjId, new List<string>());
             }
             catch
@@ -204,7 +207,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                var retObjId = await _helper.InvokeAsync<long>("getIndex", _guid, objId, accessor, indexes[0]);
+                var retObjId = await HelperAsync.InvokeAsync<long>("getIndex", _guid, objId, accessor, indexes[0]);
                 return new DynamicJS(this, retObjId, new List<string>());
             }
             catch
@@ -217,7 +220,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                _helper.InvokeVoid("setIndex", objId, accessor, indexes[0], value);
+                HelperInprocess.InvokeVoid("setIndex", objId, accessor, indexes[0], value);
             }
             catch
             {
@@ -229,7 +232,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                await _helper.InvokeVoidAsync("setIndex", objId, accessor, indexes[0], value);
+                await HelperAsync.InvokeVoidAsync("setIndex", objId, accessor, indexes[0], value);
             }
             catch
             {
@@ -241,7 +244,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                var retObjId = _helper.Invoke<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
+                var retObjId = HelperInprocess.Invoke<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
                 return new DynamicJS(this, retObjId, new List<string>());
             }
             catch
@@ -254,7 +257,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                var retObjId = await _helper.InvokeAsync<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
+                var retObjId = await HelperAsync.InvokeAsync<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
                 return new DynamicJS(this, retObjId, new List<string>());
             }
             catch
@@ -289,9 +292,11 @@ namespace Blazor.DynamicJS
             return (J)(object)src!;
         }
 
+        //todo inprocess only
         object?[] AdjustArguments(object[] args)
             => args.Select(e => AdjustObject(e)).ToArray();
 
+        //todo inprocess only
         object? AdjustObject(object? src)
         {
             if (src is IDynamicJSOwner dynamicJSOwner) return dynamicJSOwner.DynamicJS!.ToJsonable();
@@ -314,10 +319,11 @@ namespace Blazor.DynamicJS
                 typeof(DotNetObjectReferenceWrapper<>), new[] { function.GetType() },
                 "Create", new object[] { function })!;
 
+            //todo inprocess only
             _disposables.Add(objRef);
-            var objId = isAsync ? 
-                _helper.Invoke<long>("createAsyncFunction", _guid, objRef, "Function", dynamicIndexes) :
-                _helper.Invoke<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
+            var objId = isAsync ?
+                HelperInprocess.Invoke<long>("createAsyncFunction", _guid, objRef, "Function", dynamicIndexes) :
+                HelperInprocess.Invoke<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
             return new DynamicJS(this, objId, new List<string>());
         }
 

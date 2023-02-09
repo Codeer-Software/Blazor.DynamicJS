@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Dynamic;
 using System.Reflection;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Blazor.DynamicJS
 {

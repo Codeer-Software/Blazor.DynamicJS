@@ -9,7 +9,7 @@ namespace Blazor.DynamicJS
         public static async Task<DynamicJSRuntime> CreateDymaicRuntimeAsync(this IJSRuntime jsRuntime)
         {
             var module = await jsRuntime.InvokeAsync<IJSObjectReference>("import", HelperJSPath);
-            return new DynamicJSRuntime((IJSInProcessObjectReference)module);
+            return new DynamicJSRuntime(module);
         }
     }
 }
