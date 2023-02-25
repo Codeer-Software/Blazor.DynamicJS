@@ -1,4 +1,5 @@
 ﻿using Microsoft.JSInterop;
+using System.Security.Cryptography;
 
 namespace Blazor.DynamicJS
 {
@@ -36,6 +37,12 @@ namespace Blazor.DynamicJS
 
         public T GetWindow<T>()
             => new DynamicJS(this, 0, new List<string>()).AssignInterface<T>();
+
+        public dynamic New(string fullName, params object?[] args)
+            => New(0, fullName.Split('.').ToList(), args);
+
+        public dynamic NewAsync(string fullName, params object?[] args)
+            => NewAsync(0, fullName.Split('.').ToList(), args);
 
         public async Task<dynamic> ImportAsync(string path)
         {
@@ -166,7 +173,7 @@ namespace Blazor.DynamicJS
                 if (typeof(T) == typeof(object))
                 {
                     var retObjId = await HelperAsync.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, await AdjustArgumentsAsync(args!));
-                    return await new DynamicJS(this, retObjId, new List<string>()).GetValueAsync<T>();
+                    return (dynamic) new DynamicJS(this, retObjId, new List<string>());
                 }
                 return await HelperAsync.InvokeAsync<T>("invokeMethodAndGetObject", _guid, objId, accessor, await AdjustArgumentsAsync(args!));
             }
