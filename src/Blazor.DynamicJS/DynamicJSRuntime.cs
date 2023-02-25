@@ -97,7 +97,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                await HelperAsync.InvokeVoidAsync("setProperty", objId, accessor, AdjustObject(value));
+                await HelperAsync.InvokeVoidAsync("setProperty", objId, accessor, await AdjustObjectAsync(value));
             }
             catch
             {
@@ -150,7 +150,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                var retObjId = await HelperAsync.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                var retObjId = await HelperAsync.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, await AdjustArgumentsAsync(args!));
                 return new DynamicJS(this, retObjId, new List<string>());
             }
             catch
@@ -165,10 +165,10 @@ namespace Blazor.DynamicJS
             {
                 if (typeof(T) == typeof(object))
                 {
-                    var retObjId = await HelperAsync.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, AdjustArguments(args!));
+                    var retObjId = await HelperAsync.InvokeAsync<long>("invokeMethod", _guid, objId, accessor, await AdjustArgumentsAsync(args!));
                     return await new DynamicJS(this, retObjId, new List<string>()).GetValueAsync<T>();
                 }
-                return await HelperAsync.InvokeAsync<T>("invokeMethodAndGetObject", _guid, objId, accessor, AdjustArguments(args!));
+                return await HelperAsync.InvokeAsync<T>("invokeMethodAndGetObject", _guid, objId, accessor, await AdjustArgumentsAsync(args!));
             }
             catch
             {
@@ -257,7 +257,7 @@ namespace Blazor.DynamicJS
         {
             try
             {
-                var retObjId = await HelperAsync.InvokeAsync<long>("createObject", _guid, objId, accessor, AdjustArguments(args!));
+                var retObjId = await HelperAsync.InvokeAsync<long>("createObject", _guid, objId, accessor, await AdjustArgumentsAsync(args!));
                 return new DynamicJS(this, retObjId, new List<string>());
             }
             catch
@@ -292,11 +292,20 @@ namespace Blazor.DynamicJS
             return (J)(object)src!;
         }
 
-        //todo inprocess only
         object?[] AdjustArguments(object[] args)
             => args.Select(e => AdjustObject(e)).ToArray();
 
-        //todo inprocess only
+        //todo performance
+        async Task<object?[]> AdjustArgumentsAsync(object[] args)
+        {
+            var list = new List<object?>();
+            foreach (var e in args)
+            { 
+                list.Add(await AdjustObjectAsync(e));
+            }
+            return list.ToArray();
+        }
+
         object? AdjustObject(object? src)
         {
             if (src is IDynamicJSOwner dynamicJSOwner) return dynamicJSOwner.DynamicJS!.ToJsonable();
@@ -304,6 +313,19 @@ namespace Blazor.DynamicJS
             if (src is DynamicJS dynamicJs) return dynamicJs.ToJsonable();
 
             var function = ToJSFunction(src);
+            if (function != null) return ((DynamicJS)function).ToJsonable();
+
+            return src;
+        }
+
+        async Task<object?> AdjustObjectAsync(object? src)
+        {
+            //todo refactoring
+            if (src is IDynamicJSOwner dynamicJSOwner) return dynamicJSOwner.DynamicJS!.ToJsonable();
+
+            if (src is DynamicJS dynamicJs) return dynamicJs.ToJsonable();
+
+            var function = await ToJSFunctionAsync(src);
             if (function != null) return ((DynamicJS)function).ToJsonable();
 
             return src;
@@ -319,12 +341,29 @@ namespace Blazor.DynamicJS
                 typeof(DotNetObjectReferenceWrapper<>), new[] { function.GetType() },
                 "Create", new object[] { function })!;
 
-            //todo inprocess only
             _disposables.Add(objRef);
             var objId = isAsync ?
                 HelperInprocess.Invoke<long>("createAsyncFunction", _guid, objRef, "Function", dynamicIndexes) :
                 HelperInprocess.Invoke<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
             return new DynamicJS(this, objId, new List<string>());
+        }
+
+        async Task<dynamic?> ToJSFunctionAsync(object? obj)
+        {
+            //todo refactoring
+            if (obj == null) return null;
+
+            if (!JSFunctionHelper.Create(this, obj, out var function, out var dynamicIndexes, out var isAsync)) return null;
+
+            var objRef = (IDisposable)ReflectionHelper.InvokeGenericStaticMethod(
+                typeof(DotNetObjectReferenceWrapper<>), new[] { function.GetType() },
+                "Create", new object[] { function })!;
+
+            _disposables.Add(objRef);
+            var objId = isAsync ?
+                HelperInprocess.InvokeAsync<long>("createAsyncFunction", _guid, objRef, "Function", dynamicIndexes) :
+                HelperInprocess.InvokeAsync<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
+            return new DynamicJS(this, await objId, new List<string>());
         }
 
         class DotNetObjectReferenceWrapper<T> where T : class
