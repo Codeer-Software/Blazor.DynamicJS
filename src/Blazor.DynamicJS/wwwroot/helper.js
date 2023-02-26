@@ -23,11 +23,31 @@ export function invokeMethodAndGetObject(cspRefeenceId, objId, names, theArgs) {
     return objects[retObjId].obj;
 }
 
-export function setProperty (objId, names, obj) {
+export function isEqual(objId, names, obj) {
     const vals = [obj];
     resolveArgs(vals);
     obj = vals[0];
 
+    const info = getInvokeInfo(objId, names);
+
+    if (info.target === null) return window[info.last] === obj;
+    else return info.target[info.last] === obj;
+
+}
+export function isTrue(objId, names) {
+    const info = getInvokeInfo(objId, names);
+
+    let target;
+    if (info.target === null) target = window[info.last];
+    else target = info.target[info.last];
+
+    if (target) return true;
+    return false;
+}
+export function setProperty (objId, names, obj) {
+    const vals = [obj];
+    resolveArgs(vals);
+    obj = vals[0];
 
     const info = getInvokeInfo(objId, names);
 
@@ -205,8 +225,8 @@ export function dispose(cspRefeenceId) {
 
 function resolveArgs(theArgs) {
     for (let i = 0; i < theArgs.length; i++) {
-        if (theArgs[i] == null) continue;
-        if (typeof theArgs[i] != 'object') continue;
+        if (theArgs[i] === null) continue;
+        if (typeof theArgs[i] !== 'object') continue;
 
         if (theArgs[i].hasOwnProperty("blazorDynamicJavaScriptObjectId")) {
             const objId = theArgs[i]["blazorDynamicJavaScriptObjectId"];

@@ -1,13 +1,10 @@
 ﻿using System.Collections;
 using System.Dynamic;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Blazor.DynamicJS
 {
-    //todo ! != ==
-    //TryBinaryOperation
-    //TryUnaryOperation
-
     internal class DynamicJS : DynamicObject
     {
         DynamicJSRuntime _jsRuntime;
@@ -19,6 +16,41 @@ namespace Blazor.DynamicJS
             _jsRuntime = jsRuntime;
             _accessor = accessor;
             _id = id;
+        }
+
+        // != ===
+        public override bool TryBinaryOperation(BinaryOperationBinder binder, object arg, out object? result)
+        {
+            //todo sync only
+            //todo othres
+            switch (binder.Operation)
+            {
+                case ExpressionType.Equal:
+                    result = _jsRuntime.IsEqual(_id, _accessor, arg);
+                    return true;
+                case ExpressionType.NotEqual:
+                    result = !_jsRuntime.IsEqual(_id, _accessor, arg);
+                    return true;
+
+            }
+            throw new NotSupportedException();
+        }
+
+        //if () if (!)
+        public override bool TryUnaryOperation(UnaryOperationBinder binder, out object? result)
+        {
+            //todo sync only
+            //todo othres
+            switch (binder.Operation)
+            {
+                case ExpressionType.IsTrue:
+                    result = _jsRuntime.IsTrue(_id, _accessor);
+                    return true;
+                case ExpressionType.IsFalse:
+                    result = !_jsRuntime.IsTrue(_id, _accessor);
+                    return true;
+            }
+            throw new NotSupportedException();
         }
 
         //getter

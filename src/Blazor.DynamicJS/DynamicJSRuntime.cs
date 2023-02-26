@@ -88,6 +88,13 @@ namespace Blazor.DynamicJS
             return js.AssignInterface<TInterface>();
         }
 
+        internal bool IsEqual(long objId, List<string> accessor, object? arg)
+            => HelperInprocess.Invoke<bool>("isEqual", objId, accessor, AdjustObject(arg));
+
+        internal bool IsTrue(long objId, List<string> accessor)
+            => HelperInprocess.Invoke<bool>("isTrue", objId, accessor);
+
+
         internal void SetValue(long objId, List<string> accessor, object? value)
         {
             try
