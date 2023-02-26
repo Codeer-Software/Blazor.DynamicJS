@@ -30,20 +30,29 @@ export function isEqual(objId, names, obj) {
 
     const info = getInvokeInfo(objId, names);
 
-    if (info.target === null) return window[info.last] === obj;
-    else return info.target[info.last] === obj;
-
+    let target;
+    if (info.target === null) target = window[info.last];
+    else {
+        if (info.last) return target = info.target[info.last];
+        else target = info.target;
+    }
+    var x = target === obj;
+    return x;
 }
+
 export function isTrue(objId, names) {
     const info = getInvokeInfo(objId, names);
 
     let target;
     if (info.target === null) target = window[info.last];
-    else target = info.target[info.last];
-
+    else {
+        if (info.last) target = info.target[info.last];
+        else target = info.target;
+    }
     if (target) return true;
     return false;
 }
+
 export function setProperty (objId, names, obj) {
     const vals = [obj];
     resolveArgs(vals);
@@ -56,10 +65,14 @@ export function setProperty (objId, names, obj) {
 }
 
 export function getIndex(cspRefeenceId, objId, names, index) {
-    if (names.length == 0) return objects[objId].obj;
-    const info = getInvokeInfo(objId, names);
-    const obj = (info.target == null) ? window[info.last][index] : info.target[info.last][index];
-    return setObject(cspRefeenceId, obj, cspRefeenceId);
+    let obj;
+    if (names.length == 0) {
+        obj = objects[objId].obj[index];
+    } else {
+        const info = getInvokeInfo(objId, names);
+        obj = (info.target == null) ? window[info.last][index] : info.target[info.last][index];
+    }
+    return setObject(cspRefeenceId, obj);
 }
 
 export function setIndex (objId, names, index, obj) {
