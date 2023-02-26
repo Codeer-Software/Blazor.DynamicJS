@@ -85,8 +85,8 @@ export function createObject(cspRefeenceId, objId, names, theArgs) {
     return setObject(cspRefeenceId, obj, cspRefeenceId);
 }
 
-export function createFunction(cspRefeenceId, objRef, method, dynamicIndexes) {
-    const func = (...theArgs) => {
+export function createFunction(cspRefeenceId, objRef, method, argsCount, dynamicIndexes) {
+    const core = (...theArgs) => {
 
         const newArgs = [];
         for (let i = 0; i < theArgs.length; i++) {
@@ -111,11 +111,35 @@ export function createFunction(cspRefeenceId, objRef, method, dynamicIndexes) {
         }
         return ret;
     }
+
+    let func = core;
+    switch (argsCount) {
+        case 0: func = () => core(); break;
+        case 1: func = (a1) => core(a1); break;
+        case 2: func = (a1, a2) => core(a1, a2); break;
+        case 3: func = (a1, a2, a3) => core(a1, a2, a3); break;
+        case 4: func = (a1, a2, a3, a4) => core(a1, a2, a3, a4); break;
+        case 5: func = (a1, a2, a3, a4, a5) => core(a1, a2, a3, a4, a5); break;
+        case 6: func = (a1, a2, a3, a4, a5, a6) => core(a1, a2, a3, a4, a5, a6); break;
+        case 7: func = (a1, a2, a3, a4, a5, a6, a7) => core(a1, a2, a3, a4, a5, a6, a7); break;
+        case 8: func = (a1, a2, a3, a4, a5, a6, a7, a8) => core(a1, a2, a3, a4, a5, a6, a7, a8); break;
+        case 9: func = (a1, a2, a3, a4, a5, a6, a7, a8, a9) => core(a1, a2, a3, a4, a5, a6, a7, a8, a9); break;
+        case 10: func = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) => core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10); break;
+        case 11: func = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) => core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11); break;
+        case 12: func = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12) => core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12); break;
+        case 13: func = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13) => core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13); break;
+        case 14: func = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14) => core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14); break;
+        case 15: func = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) => core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15); break;
+        case 16: func = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16) => core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16); break;
+    }
+
     return setObject(cspRefeenceId, func);
 }
 
-export function createAsyncFunction(cspRefeenceId, objRef, method, dynamicIndexes) {
-    const func = async (...theArgs) => {
+
+
+export function createAsyncFunction(cspRefeenceId, objRef, method, argsCount, dynamicIndexes) {
+    const core = async (...theArgs) => {
 
         const newArgs = [];
         for (let i = 0; i < theArgs.length; i++) {
@@ -146,6 +170,28 @@ export function createAsyncFunction(cspRefeenceId, objRef, method, dynamicIndexe
             resolve(ret);
         });
     }
+
+    let func = core;
+    switch (argsCount) {
+        case 0: func = async () => await core(); break;
+        case 1: func = async (a1) => await core(a1); break;
+        case 2: func = async (a1, a2) => await core(a1, a2); break;
+        case 3: func = async (a1, a2, a3) => await core(a1, a2, a3); break;
+        case 4: func = async (a1, a2, a3, a4) => await core(a1, a2, a3, a4); break;
+        case 5: func = async (a1, a2, a3, a4, a5) => await core(a1, a2, a3, a4, a5); break;
+        case 6: func = async (a1, a2, a3, a4, a5, a6) => await core(a1, a2, a3, a4, a5, a6); break;
+        case 7: func = async (a1, a2, a3, a4, a5, a6, a7) => await core(a1, a2, a3, a4, a5, a6, a7); break;
+        case 8: func = async (a1, a2, a3, a4, a5, a6, a7, a8) => await core(a1, a2, a3, a4, a5, a6, a7, a8); break;
+        case 9: func = async (a1, a2, a3, a4, a5, a6, a7, a8, a9) => await core(a1, a2, a3, a4, a5, a6, a7, a8, a9); break;
+        case 10: func = async (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) => await core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10); break;
+        case 11: func = async (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) => await core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11); break;
+        case 12: func = async (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12) => await core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12); break;
+        case 13: func = async (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13) => await core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13); break;
+        case 14: func = async (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14) => await core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14); break;
+        case 15: func = async (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) => await core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15); break;
+        case 16: func = async (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16) => await core(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16); break;
+    }
+
     return setObject(cspRefeenceId, func);
 }
 
@@ -157,8 +203,11 @@ export function dispose(cspRefeenceId) {
     }
 }
 
-function resolveArgs (theArgs) {
+function resolveArgs(theArgs) {
     for (let i = 0; i < theArgs.length; i++) {
+        if (theArgs[i] == null) continue;
+        if (typeof theArgs[i] != 'object') continue;
+
         if (theArgs[i].hasOwnProperty("blazorDynamicJavaScriptObjectId")) {
             const objId = theArgs[i]["blazorDynamicJavaScriptObjectId"];
             const names = theArgs[i]["blazorDynamicJavaScriptUnresolvedNames"];

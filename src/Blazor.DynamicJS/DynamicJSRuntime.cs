@@ -342,7 +342,7 @@ namespace Blazor.DynamicJS
         {
             if (obj == null) return null;
 
-            if (!JSFunctionHelper.Create(this, obj, out var function, out var dynamicIndexes, out var isAsync)) return null;
+            if (!JSFunctionHelper.Create(this, obj, out var function, out var argsCount, out var dynamicIndexes, out var isAsync)) return null;
 
             var objRef = (IDisposable)ReflectionHelper.InvokeGenericStaticMethod(
                 typeof(DotNetObjectReferenceWrapper<>), new[] { function.GetType() },
@@ -350,8 +350,8 @@ namespace Blazor.DynamicJS
 
             _disposables.Add(objRef);
             var objId = isAsync ?
-                HelperInprocess.Invoke<long>("createAsyncFunction", _guid, objRef, "Function", dynamicIndexes) :
-                HelperInprocess.Invoke<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
+                HelperInprocess.Invoke<long>("createAsyncFunction", _guid, objRef, "Function", argsCount, dynamicIndexes) :
+                HelperInprocess.Invoke<long>("createFunction", _guid, objRef, "Function", argsCount, dynamicIndexes);
             return new DynamicJS(this, objId, new List<string>());
         }
 
@@ -360,7 +360,7 @@ namespace Blazor.DynamicJS
             //todo refactoring
             if (obj == null) return null;
 
-            if (!JSFunctionHelper.Create(this, obj, out var function, out var dynamicIndexes, out var isAsync)) return null;
+            if (!JSFunctionHelper.Create(this, obj, out var function, out var argsCount, out var dynamicIndexes, out var isAsync)) return null;
 
             var objRef = (IDisposable)ReflectionHelper.InvokeGenericStaticMethod(
                 typeof(DotNetObjectReferenceWrapper<>), new[] { function.GetType() },
@@ -368,8 +368,8 @@ namespace Blazor.DynamicJS
 
             _disposables.Add(objRef);
             var objId = isAsync ?
-                HelperInprocess.InvokeAsync<long>("createAsyncFunction", _guid, objRef, "Function", dynamicIndexes) :
-                HelperInprocess.InvokeAsync<long>("createFunction", _guid, objRef, "Function", dynamicIndexes);
+                HelperInprocess.InvokeAsync<long>("createAsyncFunction", _guid, objRef, "Function", argsCount, dynamicIndexes) :
+                HelperInprocess.InvokeAsync<long>("createFunction", _guid, objRef, "Function", argsCount,  dynamicIndexes);
             return new DynamicJS(this, await objId, new List<string>());
         }
 

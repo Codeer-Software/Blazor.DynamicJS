@@ -4,11 +4,12 @@ namespace Blazor.DynamicJS
 {
     internal static class JSFunctionHelper
     {
-        internal static bool Create(DynamicJSRuntime js, object obj, out object func, out int[] dynamicIndexes, out bool isAsync)
+        internal static bool Create(DynamicJSRuntime js, object obj, out object func, out int argsCount, out int[] dynamicIndexes, out bool isAsync)
         {
             isAsync = false;
             func = new object();
             dynamicIndexes = new int[0];
+            argsCount = 0;
 
             var t = obj.GetType();
             if (!IsDelegate(t)) return false;
@@ -23,6 +24,7 @@ namespace Blazor.DynamicJS
             type = generics.Any() ? type.MakeGenericType(generics) : type;
             func = ReflectionHelper.Create(type, js, obj);
 
+            argsCount = method!.GetParameters().Length;
             dynamicIndexes = method!.GetParameters().Select((e, i) => new { e.ParameterType, i }).Where(e => IsReferenceType(e.ParameterType)).Select(e => e.i).ToArray();
             return true;
         }
@@ -119,6 +121,7 @@ namespace Blazor.DynamicJS
                     case 13: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,,,,,,,,,>);
                     case 14: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>);
                     case 15: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>);
+                    case 16: return typeof(JSFunction<,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,>);
                 }
             }
             throw new NotImplementedException();
