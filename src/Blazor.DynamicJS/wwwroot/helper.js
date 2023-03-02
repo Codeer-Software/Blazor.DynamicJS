@@ -112,7 +112,15 @@ export function createObject(cspRefeenceId, objId, names, theArgs) {
 
     const info = getInvokeInfo(objId, names);
 
-    const c = info.target == null ? window[info.last] : info.target[info.last];
+    let c;
+    if (info.target == null) {
+        c = window[info.last];
+        if (!c) {
+            c = (Function('return (' + info.last + ')')());
+        }
+    } else {
+        c = info.target[info.last];
+    }
     const obj = new c(...theArgs);
 
     return setObject(cspRefeenceId, obj, cspRefeenceId);

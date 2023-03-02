@@ -35,14 +35,20 @@ namespace Blazor.DynamicJS
         public dynamic GetWindow()
             => new DynamicJS(this, 0, new List<string>());
 
-        public T GetWindow<T>()
-            => new DynamicJS(this, 0, new List<string>()).AssignInterface<T>();
+        public TInterface GetWindow<TInterface>()
+            => new DynamicJS(this, 0, new List<string>()).AssignInterface<TInterface>();
 
         public dynamic New(string fullName, params object?[] args)
             => New(0, fullName.Split('.').ToList(), args);
 
-        public dynamic NewAsync(string fullName, params object?[] args)
-            => NewAsync(0, fullName.Split('.').ToList(), args);
+        public async Task<dynamic> NewAsync(string fullName, params object?[] args)
+            => await NewAsync(0, fullName.Split('.').ToList(), args);
+
+        public TInterface New<TInterface>(string fullName, params object?[] args)
+            => New(0, fullName.Split('.').ToList(), args).AssignInterface<TInterface>();
+
+        public async Task<TInterface> NewAsync<TInterface>(string fullName, params object?[] args)
+            => (await NewAsync(0, fullName.Split('.').ToList(), args)).AssignInterface<TInterface>();
 
         public async Task<dynamic> ImportAsync(string path)
         {
