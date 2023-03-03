@@ -4,22 +4,17 @@
     {
         public string Name { get; } = string.Empty;
         public JSConstructorAttribute() { }
-        public JSConstructorAttribute(string name) { }
+        public JSConstructorAttribute(string name) => Name = name;
     }
 
-    public class JSProperty : Attribute
+    public class JSPropertyAttribute : Attribute
     {
         public string Name { get; } = string.Empty;
-        public JSProperty() { }
-        public JSProperty(string name) { }
+        public JSPropertyAttribute() { }
+        public JSPropertyAttribute(string name) => Name = name;
     }
 
-    public class JSIndexProperty : Attribute
-    {
-        public string Name { get; } = string.Empty;
-        public JSIndexProperty() { }
-        public JSIndexProperty(string name) { }
-    }
+    public class JSIndexPropertyAttribute : Attribute { }
 
     public class JSNameAttribute : Attribute
     {

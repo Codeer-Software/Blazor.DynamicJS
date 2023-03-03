@@ -234,16 +234,15 @@ namespace Blazor.DynamicJS
                 if (!string.IsNullOrEmpty(constructorAttr.Name)) name = constructorAttr.Name;
                 methodType = MethodType.New;
             }
-            var propertyAttr = attrs.OfType<JSProperty>().FirstOrDefault();
+            var propertyAttr = attrs.OfType<JSPropertyAttribute>().FirstOrDefault();
             if (propertyAttr != null)
             {
                 if (!string.IsNullOrEmpty(propertyAttr.Name)) name = propertyAttr.Name;
                 methodType = targetMethod.ReturnType == typeof(void) ? MethodType.SetProperty : MethodType.GetProperty;
             }
-            var indexAttr = attrs.OfType<JSIndexProperty>().FirstOrDefault();
+            var indexAttr = attrs.OfType<JSIndexPropertyAttribute>().FirstOrDefault();
             if (indexAttr != null)
             {
-                if (!string.IsNullOrEmpty(indexAttr.Name)) name = indexAttr.Name;
                 methodType = targetMethod.ReturnType == typeof(void) ? MethodType.SetIndexProperty : MethodType.GetIndexProperty;
             }
             var nameAttr = attrs.OfType<JSNameAttribute>().FirstOrDefault();
