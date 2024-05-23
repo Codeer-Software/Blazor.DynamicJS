@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.DynamicJS", "Blazor.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{63B7832D-E075-4839-8830-652024D3FD9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp.WebAssembly", "Test\BlazorApp.WebAssembly\BlazorApp.WebAssembly.csproj", "{F52F055F-6464-4BE4-8B6C-4389D5810C0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp.WebAssembly", "Test\BlazorApp.WebAssembly\BlazorApp.WebAssembly.csproj", "{F52F055F-6464-4BE4-8B6C-4389D5810C0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfApp", "Test\WpfApp\WpfApp.csproj", "{7BB085B0-28E2-4E9B-834C-B2A005CEBCAE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,12 +25,17 @@ Global
 		{F52F055F-6464-4BE4-8B6C-4389D5810C0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F52F055F-6464-4BE4-8B6C-4389D5810C0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F52F055F-6464-4BE4-8B6C-4389D5810C0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BB085B0-28E2-4E9B-834C-B2A005CEBCAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BB085B0-28E2-4E9B-834C-B2A005CEBCAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BB085B0-28E2-4E9B-834C-B2A005CEBCAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BB085B0-28E2-4E9B-834C-B2A005CEBCAE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F52F055F-6464-4BE4-8B6C-4389D5810C0D} = {63B7832D-E075-4839-8830-652024D3FD9E}
+		{7BB085B0-28E2-4E9B-834C-B2A005CEBCAE} = {63B7832D-E075-4839-8830-652024D3FD9E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {043FAD45-64FB-42E6-848D-2638A34A6FE8}

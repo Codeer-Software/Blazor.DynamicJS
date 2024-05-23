@@ -1,0 +1,22 @@
+@inject IJSRuntime JS
+@using System.Diagnostics
+@using Blazor.DynamicJS
+
+<h1>Counter</h1>
+
+<p>Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+@code {
+  private int currentCount = 0;
+
+  private async Task IncrementCount()
+  {
+    using var js = await JS.CreateDymaicRuntimeAsync();
+    var window = js.GetWindow();
+    window.console.log("aaa");
+
+    currentCount++;
+  }
+}
