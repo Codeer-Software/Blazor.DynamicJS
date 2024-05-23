@@ -1,13 +1,45 @@
 ﻿using Microsoft.JSInterop;
-using System.Security.Cryptography;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Blazor.DynamicJS
 {
+    public class JSInProcessObjectReference : IJSInProcessObjectReference
+    {
+        public static Func<Task, object?>? Sync { get; set; }
+
+        IJSObjectReference _core;
+        public JSInProcessObjectReference(IJSObjectReference core)
+            => _core = core;
+
+        public void Dispose()
+        {
+            if (Sync == null) throw new NotImplementedException();
+
+            var t = new Thread(() => _core.DisposeAsync().AsTask().Wait());
+            Sync(_core.DisposeAsync().AsTask());
+        }
+
+        public ValueTask DisposeAsync() => _core.DisposeAsync();
+
+        public TValue Invoke<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TValue>(string identifier, params object?[]? args)
+        {
+            if (Sync == null) throw new NotImplementedException();
+            return (TValue)Sync(_core.InvokeAsync<TValue>(identifier, args).AsTask())!;
+        }
+
+        public ValueTask<TValue> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TValue>(string identifier, object?[]? args)
+            => _core.InvokeAsync<TValue>(identifier, args);
+
+        public ValueTask<TValue> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
+            => _core.InvokeAsync<TValue>(identifier, cancellationToken, args);
+    }
+
     public class DynamicJSRuntime : IDisposable, IAsyncDisposable
     {
         readonly Guid _guid;
         IJSObjectReference HelperAsync { get; }
-        IJSInProcessObjectReference HelperInprocess => (IJSInProcessObjectReference)HelperAsync;
+        IJSInProcessObjectReference HelperInprocess => HelperAsync is IJSInProcessObjectReference inprocess ? inprocess : new JSInProcessObjectReference(HelperAsync);
+
 
         List<IDisposable> _disposables = new List<IDisposable>();
 
